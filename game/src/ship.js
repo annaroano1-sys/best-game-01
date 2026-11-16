@@ -63,15 +63,22 @@ export function drawShip(ctx, ship, now) {
   ctx.save();
   if (blink) ctx.globalAlpha = 0.35;
 
-  // Flame trail.
+  // Flame trail: flickering exhaust behind the hull.
   for (let i = 0; i < ship.trail.length; i++) {
     const p = ship.trail[i];
     const t = i / ship.trail.length;
+    const flicker = 0.8 + Math.sin(now / 40 + i * 1.7) * 0.2;
     ctx.beginPath();
-    ctx.arc(p.x, p.y + 26, 3 + t * 7, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y + 26, (3 + t * 7) * flicker, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(255, ${140 + Math.floor(t * 80)}, 60, ${t * 0.5})`;
     ctx.fill();
   }
+
+  // The hull banks into turns: lean with the horizontal velocity.
+  const bank = Math.max(-0.35, Math.min(0.35, ship.vx / 1600));
+  ctx.translate(ship.x, ship.y);
+  ctx.rotate(bank);
+  ctx.translate(-ship.x, -ship.y);
 
   // Hull.
   ctx.shadowColor = '#39c6ff';
