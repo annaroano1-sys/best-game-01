@@ -90,3 +90,34 @@ export function playGameOver() {
 export function playClick() {
   tone({ freq: 880, freqEnd: 660, dur: 0.06, type: 'sine', gain: 0.08 });
 }
+
+/** A shot leaves the ship: a short bright zap. */
+export function playShoot() {
+  tone({ freq: 980, freqEnd: 320, dur: 0.09, type: 'square', gain: 0.05 });
+}
+
+/** Something blew up: a deep crunch. */
+export function playExplode() {
+  noiseBurst({ dur: 0.4, gain: 0.3, cutoff: 500 });
+  tone({ freq: 120, freqEnd: 38, dur: 0.35, type: 'sawtooth', gain: 0.18 });
+}
+
+/** A bullet hit the boss: a metallic clank. */
+export function playBossHit() {
+  tone({ freq: 220, freqEnd: 180, dur: 0.07, type: 'square', gain: 0.07 });
+}
+
+/** The boss went down: a rising fanfare. */
+export function playBossDown() {
+  [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone({ freq: f, dur: 0.2, type: 'triangle', gain: 0.12, delay: i * 0.1 }));
+}
+
+/** The magnet snapped on. */
+export function playMagnet() {
+  tone({ freq: 300, freqEnd: 900, dur: 0.18, type: 'sine', gain: 0.1 });
+}
+
+/** A graze: a quick whoosh for a near miss. */
+export function playNearMiss() {
+  noiseBurst({ dur: 0.12, gain: 0.08, cutoff: 2400 });
+}
