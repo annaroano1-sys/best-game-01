@@ -9,7 +9,7 @@ html, body {
   color: #eaf6ff;
 }
 
-#stage {
+#wrap {
   position: relative;
   width: 1280px;
   height: 800px;
@@ -33,44 +33,109 @@ canvas#game {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 18px 24px;
+  padding: 16px 24px;
   pointer-events: none;
   text-shadow: 0 0 12px rgba(80, 200, 255, .8);
+  z-index: 3;
 }
+.hud-left, .hud-right { display: flex; flex-direction: column; gap: 2px; }
+.hud-right { align-items: flex-end; text-align: right; }
+.hud-line { display: flex; align-items: baseline; gap: 8px; }
 .hud-label {
-  font-size: 13px;
-  letter-spacing: .35em;
+  font-size: 12px;
+  letter-spacing: .3em;
   color: #8fd8ff;
-  margin-right: 8px;
 }
-.hud-value {
-  font-size: 34px;
-  font-weight: 800;
-  color: #fff;
-}
-.hud-left, .hud-mid, .hud-right { display: flex; align-items: baseline; gap: 6px; }
-.hud-mid { position: absolute; left: 50%; transform: translateX(-50%); }
-.hud-combo {
+#hud-score { font-size: 32px; font-weight: 800; color: #fff; }
+#hud-shards { font-size: 20px; font-weight: 800; color: #ffd166; }
+#hud-mission { font-size: 16px; font-weight: 700; color: #ffe66d; }
+#hud-sector { font-size: 16px; font-weight: 700; color: #39ffb0; }
+#hud-level { font-size: 32px; font-weight: 800; color: #fff; }
+#hud-lives { font-size: 24px; letter-spacing: 2px; color: #ff5d8f; }
+#hud-shield { font-size: 18px; font-weight: 800; color: #7ef0c1; }
+#hud-combo {
   font-size: 20px;
   font-weight: 800;
   color: #ffd166;
   text-shadow: 0 0 14px rgba(255, 190, 60, .9);
 }
-.hud-lives { font-size: 26px; letter-spacing: 2px; color: #ff5d8f; }
-.hud-shield { font-size: 20px; font-weight: 800; color: #7ef0c1; }
-.hud-toast {
+#hud-mute { font-size: 13px; font-weight: 800; letter-spacing: .15em; color: #8fd8ff; }
+
+#hud-toast {
   position: absolute;
-  top: 74px; left: 50%;
+  top: 168px; left: 50%; /* below the boss bar (top 118px), so the two never overlap */
   transform: translateX(-50%);
   font-size: 26px;
   font-weight: 800;
-  letter-spacing: .2em;
+  letter-spacing: .15em;
   color: #ffe66d;
   text-shadow: 0 0 18px rgba(255, 220, 80, .9);
   opacity: 0;
   transition: opacity .25s;
+  pointer-events: none;
+  z-index: 4;
+  white-space: nowrap;
 }
-.hud-toast.show { opacity: 1; }
+#hud-toast.show { opacity: 1; }
+
+/* ---- Boss health bar ---- */
+#boss-bar {
+  position: absolute;
+  top: 118px; left: 50%;
+  transform: translateX(-50%);
+  width: 460px;
+  text-align: center;
+  z-index: 3;
+}
+#boss-name {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .35em;
+  color: #ff8fb0;
+  text-shadow: 0 0 12px rgba(255, 93, 143, .9);
+}
+#boss-track {
+  margin-top: 5px;
+  height: 12px;
+  border: 1px solid rgba(255, 93, 143, .7);
+  border-radius: 999px;
+  background: rgba(20, 4, 12, .7);
+  overflow: hidden;
+}
+#boss-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff5d8f, #ffd166);
+  box-shadow: 0 0 14px rgba(255, 93, 143, .8);
+  transition: width .15s;
+}
+
+/* ---- Level banner ---- */
+#banner {
+  position: absolute;
+  top: 32%; left: 0; right: 0;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(.85);
+  transition: opacity .25s, transform .25s;
+  z-index: 5;
+}
+#banner.show { opacity: 1; transform: scale(1); }
+.banner-main {
+  font-size: 60px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  color: #ffe66d;
+  text-shadow: 0 0 34px rgba(255, 190, 60, .95), 0 0 8px rgba(255, 255, 255, .6);
+}
+.banner-sub {
+  margin-top: 6px;
+  font-size: 20px;
+  letter-spacing: .25em;
+  color: #bfe6ff;
+  text-shadow: 0 0 16px rgba(120, 200, 255, .9);
+}
 
 /* ---- Screens ---- */
 .screen {
@@ -80,132 +145,189 @@ canvas#game {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  background: radial-gradient(ellipse at 50% 40%, rgba(20, 20, 70, .55), rgba(4, 4, 15, .88));
+  gap: 14px;
+  background: radial-gradient(ellipse at 50% 40%, rgba(20, 20, 70, .55), rgba(4, 4, 15, .9));
   text-align: center;
-  padding: 40px;
+  padding: 28px 40px;
+  overflow-y: auto;
+  z-index: 6;
 }
 .title {
-  font-size: 92px;
+  font-size: 84px;
   font-weight: 900;
   letter-spacing: .18em;
+  line-height: 1;
   background: linear-gradient(180deg, #ffe66d 0%, #ff9f43 45%, #ff5d8f 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   filter: drop-shadow(0 0 26px rgba(255, 150, 80, .65));
 }
-.title.small { font-size: 72px; }
-.tagline { font-size: 22px; color: #bfe6ff; }
-.howto {
-  font-size: 18px;
-  line-height: 1.9;
-  color: #d9ecff;
-  background: rgba(10, 16, 44, .6);
-  border: 1px solid rgba(120, 190, 255, .35);
-  border-radius: 14px;
-  padding: 16px 30px;
-}
-.howto b { color: #ffd166; }
+.title.small { font-size: 60px; }
+.tagline { font-size: 20px; color: #bfe6ff; max-width: 760px; }
+.mode-note { font-size: 15px; line-height: 1.6; color: #9fc3e0; }
+.foot { font-size: 13px; color: #7d9bb8; }
+.best-line { font-size: 16px; font-weight: 700; color: #ffd166; letter-spacing: .1em; }
+.final-line { font-size: 26px; font-weight: 800; color: #d9ecff; }
+.final-line span { color: #ffd166; font-size: 34px; }
+.newbest { color: #ffe66d; font-weight: 800; font-size: 22px; text-shadow: 0 0 16px rgba(255, 220, 80, .9); }
+
+.start-modes { display: flex; gap: 16px; }
+.start-links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* ---- Buttons ---- */
 .btn {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
-  letter-spacing: .12em;
+  letter-spacing: .1em;
   color: #081226;
   background: linear-gradient(180deg, #7ef0c1, #2ec4b6);
   border: none;
   border-radius: 999px;
-  padding: 16px 44px;
+  padding: 14px 40px;
   cursor: pointer;
   box-shadow: 0 0 30px rgba(46, 196, 182, .7);
   transition: transform .12s, box-shadow .12s;
 }
 .btn:hover { transform: scale(1.06); box-shadow: 0 0 44px rgba(46, 196, 182, .95); }
 .btn:active { transform: scale(.98); }
-.foot { font-size: 14px; color: #7d9bb8; }
-.final-score { font-size: 40px; font-weight: 800; }
-.final-score span { color: #ffd166; font-size: 56px; }
-.final-best { font-size: 22px; color: #bfe6ff; }
-.newbest { color: #ffe66d; font-weight: 800; margin-left: 10px; text-shadow: 0 0 16px rgba(255, 220, 80, .9); }
-.final-stats { font-size: 18px; color: #9fc3e0; }
+.btn.primary {
+  background: linear-gradient(180deg, #ffe66d, #ff9f43);
+  box-shadow: 0 0 30px rgba(255, 160, 60, .7);
+}
+.btn.primary:hover { box-shadow: 0 0 44px rgba(255, 160, 60, .95); }
+.btn.small {
+  font-size: 15px;
+  padding: 9px 20px;
+  background: linear-gradient(180deg, #39c6ff, #1d6fd1);
+  color: #eaf6ff;
+  box-shadow: 0 0 18px rgba(57, 198, 255, .5);
+}
 
-/* ---- Boss health bar ---- */
-.boss-bar {
-  position: absolute;
-  top: 78px; left: 50%;
-  transform: translateX(-50%);
-  width: 460px;
-  text-align: center;
+/* ---- Panels (how-to / settings / hangar / achievements) ---- */
+.panel {
+  background: rgba(10, 16, 44, .75);
+  border: 1px solid rgba(120, 190, 255, .35);
+  border-radius: 14px;
+  padding: 16px 28px;
+  max-width: 760px;
+  text-align: left;
 }
-.boss-name {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: .35em;
-  color: #ff8fb0;
-  text-shadow: 0 0 12px rgba(255, 93, 143, .9);
-}
-.boss-track {
-  margin-top: 5px;
-  height: 12px;
-  border: 1px solid rgba(255, 93, 143, .7);
-  border-radius: 999px;
-  background: rgba(20, 4, 12, .7);
-  overflow: hidden;
-}
-.boss-fill {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, #ff5d8f, #ffd166);
-  box-shadow: 0 0 14px rgba(255, 93, 143, .8);
-  transition: width .15s;
-}
-.hud-mute { font-size: 14px; font-weight: 800; letter-spacing: .15em; color: #8fd8ff; }
-
-/* ---- Level banner ---- */
-.banner {
-  position: absolute;
-  top: 34%; left: 0; right: 0;
-  text-align: center;
-  pointer-events: none;
-  opacity: 0;
-  transform: scale(.85);
-  transition: opacity .25s, transform .25s;
-  z-index: 5;
-}
-.banner.show { opacity: 1; transform: scale(1); }
-.banner-main {
-  font-size: 64px;
-  font-weight: 900;
-  letter-spacing: .18em;
-  color: #ffe66d;
-  text-shadow: 0 0 34px rgba(255, 190, 60, .95), 0 0 8px rgba(255, 255, 255, .6);
-}
-.banner-sub {
-  margin-top: 6px;
-  font-size: 22px;
+.panel h2 {
+  font-size: 18px;
   letter-spacing: .25em;
-  color: #bfe6ff;
-  text-shadow: 0 0 16px rgba(120, 200, 255, .9);
+  color: #ffd166;
+  text-align: center;
+  margin-bottom: 10px;
 }
+.panel p { font-size: 16px; line-height: 1.7; color: #d9ecff; }
+.panel b { color: #ffd166; }
+.panel-note { font-size: 13px !important; color: #7d9bb8 !important; text-align: center; margin-top: 8px; }
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  font-size: 17px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+.setting-row input[type="range"] { width: 260px; accent-color: #39c6ff; }
+
+/* ---- Hangar ---- */
+#hangar-cards { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.skin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 150px;
+  padding: 12px 8px;
+  background: rgba(20, 28, 66, .8);
+  border: 2px solid rgba(120, 190, 255, .3);
+  border-radius: 12px;
+  cursor: pointer;
+  color: #eaf6ff;
+  font-family: inherit;
+}
+.skin-card:hover { border-color: #39c6ff; }
+.skin-card.selected { border-color: #ffd166; box-shadow: 0 0 18px rgba(255, 209, 102, .6); }
+.skin-card.locked { opacity: .55; cursor: default; }
+.skin-swatch { width: 60px; height: 34px; border-radius: 8px; }
+.skin-name { font-size: 14px; font-weight: 800; letter-spacing: .08em; }
+.skin-desc { font-size: 12px; color: #9fc3e0; text-align: center; line-height: 1.4; }
+#hangar-shards { text-align: center; color: #ffd166; font-weight: 700; }
+
+/* ---- Achievements ---- */
+#achievements-count { text-align: center; color: #ffd166; font-weight: 700; }
+#achievements-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; margin-top: 10px; }
+#achievements-list li { display: flex; gap: 10px; align-items: baseline; font-size: 15px; }
+.ach-icon { color: #ffd166; font-weight: 800; min-width: 26px; text-align: center; }
+.ach-name { font-weight: 800; color: #fff; }
+.ach-desc { color: #9fc3e0; font-size: 13px; }
+.ach-locked { opacity: .45; }
 
 /* ---- Top pilots ---- */
-.top-box {
+.top-pilots {
   background: rgba(10, 16, 44, .6);
   border: 1px solid rgba(120, 190, 255, .35);
   border-radius: 14px;
-  padding: 12px 26px;
+  padding: 10px 26px;
   min-width: 380px;
 }
-.top-title {
-  font-size: 15px;
+.top-pilots h2 {
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: .3em;
   color: #ffd166;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
-.top-list { list-style: none; font-size: 17px; line-height: 1.7; color: #d9ecff; text-align: left; }
-.top-list li { display: flex; gap: 14px; align-items: baseline; }
+.top-pilots ol { list-style: none; font-size: 16px; line-height: 1.6; color: #d9ecff; text-align: left; }
+.top-pilots li { display: flex; gap: 14px; align-items: baseline; }
 .top-rank { color: #8fd8ff; font-weight: 800; width: 30px; }
 .top-score { color: #fff; font-weight: 800; min-width: 70px; }
-.top-meta { color: #9fc3e0; font-size: 14px; }
+.top-meta { color: #9fc3e0; font-size: 13px; }
 .top-empty { color: #7d9bb8; font-style: italic; }
+
+/* ---- Mission complete ---- */
+.mission-stars { font-size: 56px; letter-spacing: .15em; color: #ffd166; text-shadow: 0 0 24px rgba(255, 209, 102, .9); }
+.mission-reward { font-size: 24px; font-weight: 800; color: #7ef0c1; }
+
+/* ---- Shop ---- */
+.shop-shards { font-size: 24px; font-weight: 800; color: #ffd166; }
+#shop-cards { display: grid; grid-template-columns: repeat(3, 220px); gap: 12px; justify-content: center; }
+.shop-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  background: rgba(20, 28, 66, .85);
+  border: 2px solid rgba(120, 190, 255, .35);
+  border-radius: 12px;
+  cursor: pointer;
+  color: #eaf6ff;
+  font-family: inherit;
+}
+.shop-card:hover { border-color: #39c6ff; }
+.shop-card.maxed { border-color: #7ef0c1; opacity: .7; cursor: default; }
+.shop-card.poor { opacity: .55; }
+.shop-icon { font-size: 26px; color: #ffd166; }
+.shop-name { font-size: 15px; font-weight: 800; letter-spacing: .08em; }
+.shop-desc { font-size: 13px; color: #9fc3e0; text-align: center; }
+.shop-pips { font-size: 14px; color: #39c6ff; letter-spacing: .2em; }
+.shop-cost { font-size: 15px; font-weight: 800; color: #ffd166; }
+
+/* ---- Run stats (game over) ---- */
+.run-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px 22px;
+  background: rgba(10, 16, 44, .6);
+  border: 1px solid rgba(120, 190, 255, .35);
+  border-radius: 14px;
+  padding: 14px 24px;
+}
+.run-stats div { display: flex; flex-direction: column; gap: 2px; }
+.run-stats span { font-size: 11px; letter-spacing: .2em; color: #8fd8ff; }
+.run-stats b { font-size: 24px; color: #fff; }
