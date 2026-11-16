@@ -6,7 +6,7 @@
 import { BOSS, VIEW } from './config.js';
 import { rand } from './random.js';
 
-export function createBoss(bossNumber) {
+export function createBoss(bossNumber, tint = '#ff5d8f') {
   return {
     x: VIEW.width / 2,
     y: BOSS.y,
@@ -19,6 +19,7 @@ export function createBoss(bossNumber) {
     phase: 0,
     dead: false,
     flashUntil: 0,
+    tint,
   };
 }
 
@@ -41,8 +42,8 @@ export function updateBoss(boss, dt, timeScale, now) {
 }
 
 /** A bullet hit the boss. Returns true when that hit destroyed it. */
-export function hitBoss(boss, now) {
-  boss.hp -= 1;
+export function hitBoss(boss, now, damage = 1) {
+  boss.hp -= damage;
   boss.flashUntil = now + 90;
   if (boss.hp <= 0) {
     boss.dead = true;
@@ -55,12 +56,12 @@ export function drawBoss(ctx, boss, now) {
   const flash = now < boss.flashUntil;
   ctx.save();
   ctx.translate(boss.x, boss.y);
-  ctx.shadowColor = '#ff5d8f';
+  ctx.shadowColor = boss.tint;
   ctx.shadowBlur = 30;
-  // Hull: a wide neon saucer with a glowing core.
+  // Hull: a wide neon saucer with a glowing core, tinted by its sector.
   const grad = ctx.createLinearGradient(0, -30, 0, 30);
   grad.addColorStop(0, flash ? '#ffffff' : '#ff8fb0');
-  grad.addColorStop(0.5, flash ? '#ffd166' : '#c2255c');
+  grad.addColorStop(0.5, flash ? '#ffd166' : boss.tint);
   grad.addColorStop(1, '#5c1030');
   ctx.fillStyle = grad;
   ctx.beginPath();
@@ -78,7 +79,7 @@ export function drawBoss(ctx, boss, now) {
   // Lights along the rim.
   ctx.shadowBlur = 10;
   for (let i = -2; i <= 2; i++) {
-    ctx.fillStyle = i % 2 === 0 ? '#ffd166' : '#39ffb0';
+    ctx.fillStyle = i % 2 === 0 ? '#ffd166' : boss.tint;
     ctx.beginPath();
     ctx.arc(i * 30, 8, 5, 0, Math.PI * 2);
     ctx.fill();
