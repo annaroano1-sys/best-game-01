@@ -1,11 +1,12 @@
 // STARFALL sound: every effect is synthesized with WebAudio oscillators,
 // so the game ships no audio files and makes no network request.
 // The context is created lazily on the first user gesture (browsers require it).
+// Volume and mute follow the settings screen.
 
 let ctx = null;
 let muted = false;
+let volume = 0.8;
 
-/** Create (or return) the shared AudioContext. Call from a user gesture. */
 export function ensureAudio() {
   if (ctx === null) {
     const AudioCtx = window.AudioContext ?? window.webkitAudioContext;
@@ -17,6 +18,8 @@ export function ensureAudio() {
 
 export function setMuted(value) { muted = value; }
 export function isMuted() { return muted; }
+export function setSfxVolume(v) { volume = v; }
+export function setSfxMuted(m) { muted = m; }
 
 function tone({ freq, freqEnd = null, dur = 0.12, type = 'sine', gain = 0.12, delay = 0 }) {
   if (muted) return;
@@ -29,7 +32,7 @@ function tone({ freq, freqEnd = null, dur = 0.12, type = 'sine', gain = 0.12, de
   osc.frequency.setValueAtTime(freq, t0);
   if (freqEnd !== null) osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), t0 + dur);
   amp.gain.setValueAtTime(0.0001, t0);
-  amp.gain.exponentialRampToValueAtTime(gain, t0 + 0.012);
+  amp.gain.exponentialRampToValueAtTime(gain * volume, t0 + 0.012);
   amp.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   osc.connect(amp).connect(ac.destination);
   osc.start(t0);
@@ -51,7 +54,7 @@ function noiseBurst({ dur = 0.25, gain = 0.2, cutoff = 900 }) {
   filter.type = 'lowpass';
   filter.frequency.value = cutoff;
   const amp = ac.createGain();
-  amp.gain.setValueAtTime(gain, t0);
+  amp.gain.setValueAtTime(gain * volume, t0);
   amp.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   src.connect(filter).connect(amp).connect(ac.destination);
   src.start(t0);
@@ -120,4 +123,36 @@ export function playMagnet() {
 /** A graze: a quick whoosh for a near miss. */
 export function playNearMiss() {
   noiseBurst({ dur: 0.12, gain: 0.08, cutoff: 2400 });
+}
+
+/** A screen bomb went off: a huge boom. */
+export function playBomb() {
+  noiseBurst({ dur: 0.7, gain: 0.4, cutoff: 400 });
+  tone({ freq: 90, freqEnd: 28, dur: 0.6, type: 'sawtooth', gain: 0.22 });
+  tone({ freq: 1047, freqEnd: 2093, dur: 0.25, type: 'triangle', gain: 0.08, delay: 0.05 });
+}
+
+/** An upgrade was bought: a happy chime. */
+export function playBuy() {
+  [660, 880, 1320].forEach((f, i) => tone({ freq: f, dur: 0.12, type: 'triangle', gain: 0.1, delay: i * 0.07 }));
+}
+
+/** An achievement unlocked: a bright fanfare. */
+export function playAchievement() {
+  [784, 988, 1175, 1568].forEach((f, i) => tone({ freq: f, dur: 0.18, type: 'triangle', gain: 0.1, delay: i * 0.08 }));
+}
+
+/** A raider was hit: a sharp clank. */
+export function playMinibossHit() {
+  tone({ freq: 300, freqEnd: 240, dur: 0.06, type: 'square', gain: 0.07 });
+}
+
+/** A raider went down: a short fanfare. */
+export function playMinibossDown() {
+  [523, 659, 880, 1175].forEach((f, i) => tone({ freq: f, dur: 0.16, type: 'triangle', gain: 0.11, delay: i * 0.08 }));
+}
+
+/** An enemy bolt was fired: a low warning zap. */
+export function playEnemyShoot() {
+  tone({ freq: 220, freqEnd: 110, dur: 0.12, type: 'sawtooth', gain: 0.05 });
 }
