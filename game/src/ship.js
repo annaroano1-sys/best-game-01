@@ -1,10 +1,13 @@
 // The player's ship: a small neon dart with a flame trail, a shield ring
-// while protected, and a blink while invulnerable after a hit.
+// while protected, and a blink while invulnerable after a hit. The hull,
+// glow, flame and bullet colours follow the selected skin, and the hull
+// banks into turns.
 
 import { SHIP, VIEW } from './config.js';
 import { clamp } from './random.js';
+import { skinById } from './skins.js';
 
-export function createShip() {
+export function createShip(skinId = 'azure') {
   return {
     x: VIEW.width / 2,
     y: VIEW.height - 140,
@@ -12,8 +15,10 @@ export function createShip() {
     vy: 0,
     radius: SHIP.radius,
     shield: false,
+    shieldHits: 0,
     invulnerableUntil: 0,
     trail: [], // recent positions, for the flame trail
+    skin: skinById(skinId),
   };
 }
 
@@ -60,17 +65,18 @@ export function isInvulnerable(ship, now) {
 /** Draw the ship: glow, hull, cockpit, flame, and the shield ring. */
 export function drawShip(ctx, ship, now) {
   const blink = isInvulnerable(ship, now) && Math.floor(now / 90) % 2 === 0;
+  const skin = ship.skin;
   ctx.save();
   if (blink) ctx.globalAlpha = 0.35;
 
-  // Flame trail: flickering exhaust behind the hull.
+  // Flame trail: flickering exhaust behind the hull, in the skin's colour.
   for (let i = 0; i < ship.trail.length; i++) {
     const p = ship.trail[i];
     const t = i / ship.trail.length;
     const flicker = 0.8 + Math.sin(now / 40 + i * 1.7) * 0.2;
     ctx.beginPath();
     ctx.arc(p.x, p.y + 26, (3 + t * 7) * flicker, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255, ${140 + Math.floor(t * 80)}, 60, ${t * 0.5})`;
+    ctx.fillStyle = `rgba(${skin.flame[0]}, ${skin.flame[1]}, ${skin.flame[2]}, ${t * 0.5})`;
     ctx.fill();
   }
 
@@ -80,13 +86,13 @@ export function drawShip(ctx, ship, now) {
   ctx.rotate(bank);
   ctx.translate(-ship.x, -ship.y);
 
-  // Hull.
-  ctx.shadowColor = '#39c6ff';
+  // Hull, in the skin's gradient.
+  ctx.shadowColor = skin.glow;
   ctx.shadowBlur = 22;
   const grad = ctx.createLinearGradient(ship.x, ship.y - 26, ship.x, ship.y + 22);
-  grad.addColorStop(0, '#bfe9ff');
-  grad.addColorStop(0.5, '#39c6ff');
-  grad.addColorStop(1, '#1d6fd1');
+  grad.addColorStop(0, skin.hull[0]);
+  grad.addColorStop(0.5, skin.hull[1]);
+  grad.addColorStop(1, skin.hull[2]);
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.moveTo(ship.x, ship.y - 26);
