@@ -11,7 +11,8 @@ export function createAsteroidField() {
   return { list: [], spawnTimer: 0 };
 }
 
-function makeAsteroid(level) {
+// Rocks take hits now that the ship can shoot: big rocks need two shots.
+export function makeAsteroid(level) {
   const radius = rand(ASTEROID.radiusMin, ASTEROID.radiusMax);
   const speed = Math.min(
     ASTEROID.baseSpeed + (level - 1) * ASTEROID.speedGrowth + rand(-20, 40),
@@ -29,6 +30,9 @@ function makeAsteroid(level) {
     vx: rand(-35, 35),
     vy: speed,
     radius,
+    hp: radius > 32 ? 2 : 1,
+    maxHp: radius > 32 ? 2 : 1,
+    score: Math.round(10 + radius),
     points,
     rot: rand(0, Math.PI * 2),
     rotSpeed: rand(-1.2, 1.2),
@@ -36,8 +40,8 @@ function makeAsteroid(level) {
   };
 }
 
-export function updateAsteroids(field, level, dt, timeScale) {
-  const rate = ASTEROID.baseSpawnPerSec + (level - 1) * ASTEROID.spawnGrowth;
+export function updateAsteroids(field, level, dt, timeScale, spawnScale = 1) {
+  const rate = (ASTEROID.baseSpawnPerSec + (level - 1) * ASTEROID.spawnGrowth) * spawnScale;
   field.spawnTimer -= dt * timeScale;
   if (field.spawnTimer <= 0 && field.list.length < ASTEROID.maxOnScreen) {
     field.list.push(makeAsteroid(level));
@@ -51,6 +55,30 @@ export function updateAsteroids(field, level, dt, timeScale) {
     if (a.x > VIEW.width + a.radius) a.x = -a.radius;
   }
   field.list = field.list.filter((a) => a.y - a.radius < VIEW.height + 20);
+}
+
+/** Bullets vs rocks. Returns events the game loop turns into points. */
+export function resolveRockHits(field, bullets) {
+  const events = [];
+  for (const b of bullets) {
+    if (b.spent) continue;
+    for (const a of field.list) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const r = b.radius + a.radius;
+      if (dx * dx + dy * dy >= r * r) continue;
+      b.spent = true;
+      a.hp -= 1;
+      if (a.hp <= 0) {
+        field.list = field.list.filter((other) => other !== a);
+        events.push({ type: 'destroyed', x: a.x, y: a.y, score: a.score, enemy: a });
+      } else {
+        events.push({ type: 'hit', x: a.x, y: a.y, score: 0, enemy: a });
+      }
+      break;
+    }
+  }
+  return events;
 }
 
 /** Draw every rock as a jagged polygon with a cratered glow. */
@@ -75,6 +103,16 @@ export function drawAsteroids(ctx, field) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.lineWidth = 1.5;
     ctx.stroke();
+    // A damaged rock shows a crack before it breaks.
+    if (a.hp < a.maxHp) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-a.radius * 0.5, -a.radius * 0.3);
+      ctx.lineTo(0, a.radius * 0.1);
+      ctx.lineTo(a.radius * 0.45, -a.radius * 0.35);
+      ctx.stroke();
+    }
     // Craters.
     ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
     ctx.beginPath();
