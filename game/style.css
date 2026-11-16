@@ -128,3 +128,84 @@ canvas#game {
 .final-best { font-size: 22px; color: #bfe6ff; }
 .newbest { color: #ffe66d; font-weight: 800; margin-left: 10px; text-shadow: 0 0 16px rgba(255, 220, 80, .9); }
 .final-stats { font-size: 18px; color: #9fc3e0; }
+
+/* ---- Boss health bar ---- */
+.boss-bar {
+  position: absolute;
+  top: 78px; left: 50%;
+  transform: translateX(-50%);
+  width: 460px;
+  text-align: center;
+}
+.boss-name {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .35em;
+  color: #ff8fb0;
+  text-shadow: 0 0 12px rgba(255, 93, 143, .9);
+}
+.boss-track {
+  margin-top: 5px;
+  height: 12px;
+  border: 1px solid rgba(255, 93, 143, .7);
+  border-radius: 999px;
+  background: rgba(20, 4, 12, .7);
+  overflow: hidden;
+}
+.boss-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff5d8f, #ffd166);
+  box-shadow: 0 0 14px rgba(255, 93, 143, .8);
+  transition: width .15s;
+}
+.hud-mute { font-size: 14px; font-weight: 800; letter-spacing: .15em; color: #8fd8ff; }
+
+/* ---- Level banner ---- */
+.banner {
+  position: absolute;
+  top: 34%; left: 0; right: 0;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(.85);
+  transition: opacity .25s, transform .25s;
+  z-index: 5;
+}
+.banner.show { opacity: 1; transform: scale(1); }
+.banner-main {
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  color: #ffe66d;
+  text-shadow: 0 0 34px rgba(255, 190, 60, .95), 0 0 8px rgba(255, 255, 255, .6);
+}
+.banner-sub {
+  margin-top: 6px;
+  font-size: 22px;
+  letter-spacing: .25em;
+  color: #bfe6ff;
+  text-shadow: 0 0 16px rgba(120, 200, 255, .9);
+}
+
+/* ---- Top pilots ---- */
+.top-box {
+  background: rgba(10, 16, 44, .6);
+  border: 1px solid rgba(120, 190, 255, .35);
+  border-radius: 14px;
+  padding: 12px 26px;
+  min-width: 380px;
+}
+.top-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .3em;
+  color: #ffd166;
+  margin-bottom: 6px;
+}
+.top-list { list-style: none; font-size: 17px; line-height: 1.7; color: #d9ecff; text-align: left; }
+.top-list li { display: flex; gap: 14px; align-items: baseline; }
+.top-rank { color: #8fd8ff; font-weight: 800; width: 30px; }
+.top-score { color: #fff; font-weight: 800; min-width: 70px; }
+.top-meta { color: #9fc3e0; font-size: 14px; }
+.top-empty { color: #7d9bb8; font-style: italic; }
