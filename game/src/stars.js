@@ -1,5 +1,6 @@
 // Stars and power-ups: golden stars rain down to be collected (each one
-// feeds the combo chain), and glowing orbs grant a shield or slow motion.
+// feeds the combo chain), and glowing orbs grant shields, slow motion,
+// magnets, double score — and now screen bombs and spread fire too.
 
 import { STAR, POWERUP, VIEW } from './config.js';
 import { rand, pick } from './random.js';
@@ -25,11 +26,13 @@ function makeStar(level) {
 
 function makePowerup() {
   const roll = Math.random();
-  const kind = roll < 0.25 ? 'shield'
-    : roll < 0.45 ? 'slowmo'
-    : roll < 0.60 ? 'life'
-    : roll < 0.80 ? 'magnet'
-    : 'double';
+  const kind = roll < 0.18 ? 'shield'
+    : roll < 0.34 ? 'slowmo'
+    : roll < 0.46 ? 'life'
+    : roll < 0.62 ? 'magnet'
+    : roll < 0.76 ? 'double'
+    : roll < 0.88 ? 'spread'
+    : 'bomb';
   return {
     x: rand(60, VIEW.width - 60),
     y: -30,
@@ -40,8 +43,18 @@ function makePowerup() {
   };
 }
 
-export function updateStars(field, level, dt, timeScale) {
-  const rate = STAR.baseSpawnPerSec + (level - 1) * STAR.spawnGrowth;
+/** A supply-drop event drops three orbs at once. */
+export function dropSupply(field) {
+  for (let i = 0; i < 3; i++) {
+    const p = makePowerup();
+    p.x = rand(200, VIEW.width - 200);
+    p.y = -30 - i * 60;
+    field.powerups.push(p);
+  }
+}
+
+export function updateStars(field, level, dt, timeScale, starMult = 1) {
+  const rate = (STAR.baseSpawnPerSec + (level - 1) * STAR.spawnGrowth) * starMult;
   field.spawnTimer -= dt * timeScale;
   if (field.spawnTimer <= 0) {
     field.stars.push(makeStar(level));
@@ -101,9 +114,11 @@ export function drawStars(ctx, field, now) {
     const style = {
       shield: { label: 'S', color: '#7ef0c1', dark: '#06281d' },
       slowmo: { label: '◷', color: '#c77dff', dark: '#2a0a4a' },
-      life: { label: '♥', color: '#ff5d8f', dark: '#3d0a1e' },
+      life: { label: '♥', color: '#ff5d5f', dark: '#3d0a1e' },
       magnet: { label: 'M', color: '#ffb703', dark: '#3d2a00' },
       double: { label: '×2', color: '#39c6ff', dark: '#06283d' },
+      spread: { label: '⁂', color: '#ff9f43', dark: '#3d1a00' },
+      bomb: { label: '✹', color: '#ff5d5d', dark: '#3d0a0a' },
     }[p.kind];
     ctx.shadowColor = style.color;
     ctx.fillStyle = style.color;
