@@ -10,20 +10,26 @@ export function createStarField() {
 
 function makeStar(level) {
   const speed = Math.min(STAR.baseSpeed + (level - 1) * STAR.speedGrowth, STAR.maxSpeed);
+  const comet = Math.random() < STAR.cometChance;
   return {
     x: rand(STAR.radius + 6, VIEW.width - STAR.radius - 6),
     y: -STAR.radius - 8,
     vy: speed * rand(0.85, 1.2),
     vx: rand(-18, 18),
-    radius: STAR.radius,
+    radius: comet ? STAR.radius + 6 : STAR.radius,
     phase: rand(0, Math.PI * 2),
-    hue: pick(['#ffd166', '#ffe66d', '#ffb703']),
+    hue: comet ? '#ff5d8f' : pick(['#ffd166', '#ffe66d', '#ffb703']),
+    comet,
   };
 }
 
 function makePowerup() {
   const roll = Math.random();
-  const kind = roll < 0.4 ? 'shield' : roll < 0.8 ? 'slowmo' : 'life';
+  const kind = roll < 0.25 ? 'shield'
+    : roll < 0.45 ? 'slowmo'
+    : roll < 0.60 ? 'life'
+    : roll < 0.80 ? 'magnet'
+    : 'double';
   return {
     x: rand(60, VIEW.width - 60),
     y: -30,
@@ -92,19 +98,23 @@ export function drawStars(ctx, field, now) {
     ctx.save();
     ctx.translate(p.x, p.y + bob);
     ctx.shadowBlur = 22;
-    const label = p.kind === 'shield' ? 'S' : p.kind === 'slowmo' ? '◷' : '♥';
-    const color = p.kind === 'shield' ? '#7ef0c1' : p.kind === 'slowmo' ? '#c77dff' : '#ff5d8f';
-    const dark = p.kind === 'shield' ? '#06281d' : p.kind === 'slowmo' ? '#2a0a4a' : '#3d0a1e';
-    ctx.shadowColor = color;
-    ctx.fillStyle = color;
+    const style = {
+      shield: { label: 'S', color: '#7ef0c1', dark: '#06281d' },
+      slowmo: { label: '◷', color: '#c77dff', dark: '#2a0a4a' },
+      life: { label: '♥', color: '#ff5d8f', dark: '#3d0a1e' },
+      magnet: { label: 'M', color: '#ffb703', dark: '#3d2a00' },
+      double: { label: '×2', color: '#39c6ff', dark: '#06283d' },
+    }[p.kind];
+    ctx.shadowColor = style.color;
+    ctx.fillStyle = style.color;
     ctx.beginPath();
     ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = dark;
+    ctx.fillStyle = style.dark;
     ctx.font = 'bold 20px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(label, 0, 1);
+    ctx.fillText(style.label, 0, 1);
     ctx.restore();
   }
 }
