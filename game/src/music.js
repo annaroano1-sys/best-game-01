@@ -1,13 +1,11 @@
 // STARFALL music: a quiet synth loop, synthesized live with WebAudio —
 // a pulsing bass line under a slow arpeggio, scheduled a beat ahead so it
-// never stutters. No audio files, no network. Starts on the first launch
-// (browsers need a gesture) and stops on game over / pause.
+// never stutters. No audio files, no network. Each sector has its own
+// bass line and arpeggio, and the volume follows the settings screen.
+// Starts on the first launch (browsers need a gesture) and stops on
+// game over / pause.
 
 import { MUSIC } from './config.js';
-
-// A-minor drift: bass roots and a pentatonic arpeggio that never clashes.
-const BASS_LINE = [55.0, 55.0, 65.41, 49.0, 55.0, 55.0, 82.41, 73.42];
-const ARP_NOTES = [220.0, 261.63, 329.63, 392.0, 440.0, 329.63, 261.63, 196.0];
 
 let ac = null;
 let master = null;
@@ -15,6 +13,9 @@ let timer = null;
 let step = 0;
 let nextStepTime = 0;
 let playing = false;
+let sector = 0;
+let volume = 0.7;
+let muted = false;
 
 function ensureContext() {
   if (ac === null) {
@@ -22,11 +23,26 @@ function ensureContext() {
     if (!AudioCtx) return null;
     ac = new AudioCtx();
     master = ac.createGain();
-    master.gain.value = 1;
+    master.gain.value = muted ? 0 : volume;
     master.connect(ac.destination);
   }
   if (ac.state === 'suspended') void ac.resume();
   return ac;
+}
+
+export function setMusicVolume(v) {
+  volume = v;
+  if (master) master.gain.value = muted ? 0 : volume;
+}
+
+export function setMusicMuted(m) {
+  muted = m;
+  if (master) master.gain.value = muted ? 0 : volume;
+}
+
+/** Switch the loop to another sector's bass line and arpeggio. */
+export function setMusicSector(i) {
+  sector = Math.max(0, Math.min(MUSIC.sets.length - 1, i));
 }
 
 function note(freq, at, dur, type, gain) {
@@ -44,14 +60,15 @@ function note(freq, at, dur, type, gain) {
 
 /** Schedule one 8th-note step of the loop. */
 function scheduleStep() {
+  const set = MUSIC.sets[sector];
   const stepDur = 60 / MUSIC.bpm / 2;
   while (nextStepTime < ac.currentTime + 0.25) {
     const i = step % 8;
-    note(BASS_LINE[i], nextStepTime, stepDur * 1.8, 'sawtooth', MUSIC.bassGain);
+    note(set.bass[i], nextStepTime, stepDur * 1.8, 'sawtooth', MUSIC.bassGain);
     if (i % 2 === 0) {
-      note(ARP_NOTES[(step * 3) % ARP_NOTES.length], nextStepTime, stepDur * 1.4, 'triangle', MUSIC.leadGain);
+      note(set.arp[(step * 3) % set.arp.length], nextStepTime, stepDur * 1.4, 'triangle', MUSIC.leadGain);
     }
-    if (i === 4) note(ARP_NOTES[(step + 2) % ARP_NOTES.length] * 2, nextStepTime, stepDur, 'sine', MUSIC.leadGain * 0.7);
+    if (i === 4) note(set.arp[(step + 2) % set.arp.length] * 2, nextStepTime, stepDur, 'sine', MUSIC.leadGain * 0.7);
     step += 1;
     nextStepTime += stepDur;
   }
