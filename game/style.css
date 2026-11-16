@@ -1,0 +1,130 @@
+/* STARFALL — neon space arcade: all interface styling lives here. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: #04040f;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #eaf6ff;
+}
+
+#stage {
+  position: relative;
+  width: 1280px;
+  height: 800px;
+  margin: 0 auto;
+  background: #04040f;
+  overflow: hidden;
+}
+
+canvas#game {
+  display: block;
+  width: 1280px;
+  height: 800px;
+}
+
+.hidden { display: none !important; }
+
+/* ---- HUD ---- */
+#hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 24px;
+  pointer-events: none;
+  text-shadow: 0 0 12px rgba(80, 200, 255, .8);
+}
+.hud-label {
+  font-size: 13px;
+  letter-spacing: .35em;
+  color: #8fd8ff;
+  margin-right: 8px;
+}
+.hud-value {
+  font-size: 34px;
+  font-weight: 800;
+  color: #fff;
+}
+.hud-left, .hud-mid, .hud-right { display: flex; align-items: baseline; gap: 6px; }
+.hud-mid { position: absolute; left: 50%; transform: translateX(-50%); }
+.hud-combo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffd166;
+  text-shadow: 0 0 14px rgba(255, 190, 60, .9);
+}
+.hud-lives { font-size: 26px; letter-spacing: 2px; color: #ff5d8f; }
+.hud-shield { font-size: 20px; font-weight: 800; color: #7ef0c1; }
+.hud-toast {
+  position: absolute;
+  top: 74px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: .2em;
+  color: #ffe66d;
+  text-shadow: 0 0 18px rgba(255, 220, 80, .9);
+  opacity: 0;
+  transition: opacity .25s;
+}
+.hud-toast.show { opacity: 1; }
+
+/* ---- Screens ---- */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: radial-gradient(ellipse at 50% 40%, rgba(20, 20, 70, .55), rgba(4, 4, 15, .88));
+  text-align: center;
+  padding: 40px;
+}
+.title {
+  font-size: 92px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  background: linear-gradient(180deg, #ffe66d 0%, #ff9f43 45%, #ff5d8f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 26px rgba(255, 150, 80, .65));
+}
+.title.small { font-size: 72px; }
+.tagline { font-size: 22px; color: #bfe6ff; }
+.howto {
+  font-size: 18px;
+  line-height: 1.9;
+  color: #d9ecff;
+  background: rgba(10, 16, 44, .6);
+  border: 1px solid rgba(120, 190, 255, .35);
+  border-radius: 14px;
+  padding: 16px 30px;
+}
+.howto b { color: #ffd166; }
+.btn {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: #081226;
+  background: linear-gradient(180deg, #7ef0c1, #2ec4b6);
+  border: none;
+  border-radius: 999px;
+  padding: 16px 44px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(46, 196, 182, .7);
+  transition: transform .12s, box-shadow .12s;
+}
+.btn:hover { transform: scale(1.06); box-shadow: 0 0 44px rgba(46, 196, 182, .95); }
+.btn:active { transform: scale(.98); }
+.foot { font-size: 14px; color: #7d9bb8; }
+.final-score { font-size: 40px; font-weight: 800; }
+.final-score span { color: #ffd166; font-size: 56px; }
+.final-best { font-size: 22px; color: #bfe6ff; }
+.newbest { color: #ffe66d; font-weight: 800; margin-left: 10px; text-shadow: 0 0 16px rgba(255, 220, 80, .9); }
+.final-stats { font-size: 18px; color: #9fc3e0; }
