@@ -1,9 +1,10 @@
 // Particles and the backdrop: explosion sparks when something breaks,
-// collect sparkles when a star is caught, floating score pop-ups, and a
-// seeded parallax starfield sky — three layers of stars drifting at
-// different speeds over two slow-moving nebulae — behind everything.
+// collect sparkles when a star is caught, shockwave rings for big blasts,
+// floating score pop-ups, and a seeded parallax starfield sky — three
+// layers of stars drifting at different speeds over slow-moving nebulae —
+// behind everything. The sky palette follows the current sector.
 
-import { VIEW } from './config.js';
+import { SECTORS, VIEW } from './config.js';
 import { mulberry32, rand } from './random.js';
 
 export function createBackdrop() {
@@ -28,22 +29,31 @@ export function createBackdrop() {
   });
   return {
     layers,
+    sector: 0,
     nebulas: [
-      { x: 240, y: 190, r: 280, color: 'rgba(80, 40, 160, 0.20)', vx: 3, vy: 1.5 },
-      { x: 1020, y: 560, r: 320, color: 'rgba(20, 90, 140, 0.18)', vx: -2, vy: 1 },
-      { x: 760, y: 120, r: 220, color: 'rgba(160, 40, 110, 0.14)', vx: 2.5, vy: 2 },
-      { x: 120, y: 640, r: 200, color: 'rgba(255, 150, 60, 0.10)', vx: -1.5, vy: -1 },
+      { x: 240, y: 190, r: 280, color: SECTORS[0].nebula[0].color, vx: 3, vy: 1.5 },
+      { x: 1020, y: 560, r: 320, color: SECTORS[0].nebula[1].color, vx: -2, vy: 1 },
+      { x: 760, y: 120, r: 220, color: SECTORS[0].nebula[2].color, vx: 2.5, vy: 2 },
+      { x: 120, y: 640, r: 200, color: SECTORS[0].nebula[3].color, vx: -1.5, vy: -1 },
     ],
   };
+}
+
+/** Swap the sky to another sector's palette (nebulae recolor in place). */
+export function setBackdropSector(backdrop, sector) {
+  backdrop.sector = sector;
+  const palette = SECTORS[sector].nebula;
+  backdrop.nebulas.forEach((n, i) => { n.color = palette[i % palette.length].color; });
 }
 
 export function drawBackdrop(ctx, backdrop, dt, now, shakeX = 0, shakeY = 0) {
   ctx.save();
   if (shakeX !== 0 || shakeY !== 0) ctx.translate(shakeX, shakeY);
+  const sky = SECTORS[backdrop.sector].sky;
   const grad = ctx.createLinearGradient(0, 0, 0, VIEW.height);
-  grad.addColorStop(0, '#050516');
-  grad.addColorStop(0.55, '#0a0a2e');
-  grad.addColorStop(1, '#12082e');
+  grad.addColorStop(0, sky[0]);
+  grad.addColorStop(0.55, sky[1]);
+  grad.addColorStop(1, sky[2]);
   ctx.fillStyle = grad;
   ctx.fillRect(-20, -20, VIEW.width + 40, VIEW.height + 40);
 
@@ -78,7 +88,7 @@ export function drawBackdrop(ctx, backdrop, dt, now, shakeX = 0, shakeY = 0) {
 }
 
 export function createParticles() {
-  return { list: [], popups: [] };
+  return { list: [], popups: [], rings: [] };
 }
 
 /** A burst of sparks at (x, y) in the given color. */
@@ -96,6 +106,11 @@ export function burst(particles, x, y, color, count = 26, power = 320) {
       color,
     });
   }
+}
+
+/** An expanding shockwave ring — the big-blast signature. */
+export function shockwave(particles, x, y, color, maxR = 160) {
+  particles.rings.push({ x, y, r: 8, maxR, color, life: 0.55, maxLife: 0.55 });
 }
 
 /** Floating score text that rises and fades ("+30", "BOSS +500"). */
@@ -117,6 +132,11 @@ export function updateParticles(particles, dt) {
     p.life -= dt;
   }
   particles.popups = particles.popups.filter((p) => p.life > 0);
+  for (const ring of particles.rings) {
+    ring.r += (ring.maxR - ring.r) * dt * 6;
+    ring.life -= dt;
+  }
+  particles.rings = particles.rings.filter((r) => r.life > 0);
 }
 
 export function drawParticles(ctx, particles) {
@@ -128,6 +148,18 @@ export function drawParticles(ctx, particles) {
     ctx.fill();
   }
   ctx.globalAlpha = 1;
+  for (const ring of particles.rings) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, ring.life / ring.maxLife);
+    ctx.strokeStyle = ring.color;
+    ctx.lineWidth = 5;
+    ctx.shadowColor = ring.color;
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
   for (const p of particles.popups) {
     ctx.save();
     ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
