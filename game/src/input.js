@@ -11,10 +11,11 @@ const KEYMAP = {
 
 export function createInput(canvas) {
   const held = new Set();
-  const mouse = { x: null, y: null, active: false };
+  const mouse = { x: null, y: null, active: false, firing: false };
   let pausePressed = false;
   let restartPressed = false;
   let startPressed = false;
+  let mutePressed = false;
 
   function onKeyDown(event) {
     const action = KEYMAP[event.code];
@@ -27,8 +28,19 @@ export function createInput(canvas) {
       pausePressed = true;
       event.preventDefault();
     }
-    if (event.code === 'KeyR' || event.code === 'Enter' || event.code === 'Space') {
-      if (event.code === 'Space') event.preventDefault();
+    if (event.code === 'KeyM') {
+      mutePressed = true;
+      return;
+    }
+    if (event.code === 'Space') {
+      // Space fires while playing, and starts / restarts on the screens.
+      held.add('fire');
+      startPressed = true;
+      restartPressed = true;
+      event.preventDefault();
+      return;
+    }
+    if (event.code === 'KeyR' || event.code === 'Enter') {
       startPressed = true;
       restartPressed = true;
     }
@@ -37,6 +49,7 @@ export function createInput(canvas) {
   function onKeyUp(event) {
     const action = KEYMAP[event.code];
     if (action) held.delete(action);
+    if (event.code === 'Space') held.delete('fire');
   }
 
   function onMouseMove(event) {
@@ -48,19 +61,31 @@ export function createInput(canvas) {
 
   function onMouseLeave() { mouse.active = false; }
 
+  function onMouseDown(event) {
+    // Clicking the canvas fires; clicks on buttons are their own business.
+    if (event.target === canvas) mouse.firing = true;
+  }
+
+  function onMouseUp() { mouse.firing = false; }
+
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   canvas.addEventListener('mousemove', onMouseMove);
   canvas.addEventListener('mouseleave', onMouseLeave);
+  canvas.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mouseup', onMouseUp);
 
   return {
     held,
     mouse,
+    /** The fire button is held right now (Space or mouse). */
+    get firing() { return held.has('fire') || mouse.firing; },
     /** True once since the last read; then cleared. */
     consumePause() { const v = pausePressed; pausePressed = false; return v; },
     consumeRestart() { const v = restartPressed; restartPressed = false; return v; },
     consumeStart() { const v = startPressed; startPressed = false; return v; },
+    consumeMute() { const v = mutePressed; mutePressed = false; return v; },
     /** Forget one-shot flags (e.g. when a screen changes). */
-    clearOneShots() { pausePressed = false; restartPressed = false; startPressed = false; },
+    clearOneShots() { pausePressed = false; restartPressed = false; startPressed = false; mutePressed = false; },
   };
 }
