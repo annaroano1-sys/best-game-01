@@ -1,71 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>STARFALL — a neon space arcade</title>
+<title>STARFALL — Neon Arcade Space Game</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="stage">
+<div id="wrap">
   <canvas id="game" width="1280" height="800"></canvas>
+
   <div id="hud" class="hidden">
     <div class="hud-left">
-      <span class="hud-label">SCORE</span>
-      <span id="hud-score" class="hud-value">0</span>
-      <span id="hud-combo" class="hud-combo"></span>
-    </div>
-    <div class="hud-mid">
-      <span class="hud-label">LEVEL</span>
-      <span id="hud-level" class="hud-value">1</span>
+      <div class="hud-line"><span class="hud-label">SCORE</span> <span id="hud-score">0</span></div>
+      <div class="hud-line"><span class="hud-label">SHARDS</span> <span id="hud-shards">◆ 0</span></div>
+      <div class="hud-line"><span class="hud-label">MISSION</span> <span id="hud-mission"></span></div>
+      <div class="hud-line"><span class="hud-label">SECTOR</span> <span id="hud-sector"></span></div>
     </div>
     <div class="hud-right">
-      <span id="hud-mute" class="hud-mute"></span>
-      <span class="hud-label">SHIELD</span>
-      <span id="hud-shield" class="hud-shield">—</span>
-      <span class="hud-label">LIVES</span>
-      <span id="hud-lives" class="hud-lives"></span>
+      <div class="hud-line"><span class="hud-label">LEVEL</span> <span id="hud-level">1</span></div>
+      <div class="hud-line"><span class="hud-label">LIVES</span> <span id="hud-lives">♥♥♥</span></div>
+      <div class="hud-line"><span class="hud-label">SHIELD</span> <span id="hud-shield">—</span></div>
+      <div class="hud-line hud-combo"><span id="hud-combo"></span></div>
+      <div class="hud-line hud-mute"><span id="hud-mute"></span></div>
     </div>
-    <div id="boss-bar" class="boss-bar hidden">
-      <span id="boss-name" class="boss-name">MOTHERSHIP</span>
-      <div class="boss-track"><div id="boss-fill" class="boss-fill"></div></div>
-    </div>
-    <div id="hud-toast" class="hud-toast"></div>
   </div>
-  <div id="banner" class="banner"></div>
+
+  <div id="boss-bar" class="hidden">
+    <div id="boss-name">MOTHERSHIP</div>
+    <div id="boss-track"><div id="boss-fill"></div></div>
+  </div>
+
+  <div id="banner"></div>
+  <div id="hud-toast"></div>
+
   <div id="screen-start" class="screen">
     <h1 class="title">STARFALL</h1>
-    <p class="tagline">Catch the falling stars. Blast the rocks. Beat the mothership.</p>
-    <div class="howto">
-      <p><b>Move</b> — Arrow keys / WASD / mouse</p>
-      <p><b>Shoot</b> — Hold Space or click the mouse</p>
-      <p><b>Collect</b> — Stars score points, chains build a combo; golden comets pay ×5</p>
-      <p><b>Survive</b> — Rocks, speeders, mines and drones. 3 lives. Grab shields, slow-mo, magnets and double score.</p>
-      <p><b>Boss</b> — Every 5th level a mothership guards the sky. Sink it for +500.</p>
-      <p><b>Pause</b> — P or Esc &nbsp;·&nbsp; <b>Mute</b> — M</p>
+    <p class="tagline">Collect the stars. Dodge the rocks. Sink the mothership.</p>
+    <div class="start-modes">
+      <button id="btn-start" class="btn primary" type="button">▶ PLAY CAMPAIGN</button>
+      <button id="btn-endless" class="btn" type="button">∞ ENDLESS DRIFT</button>
     </div>
-    <button id="btn-start" class="btn">▶ &nbsp;LAUNCH</button>
-    <div class="top-box">
-      <p class="top-title">★ TOP PILOTS ★</p>
-      <ol id="start-top" class="top-list"></ol>
+    <p class="mode-note">Campaign: 15 missions across 3 sectors — beat the mothership on level 15.<br>
+      Endless Drift: survive as long as you can. Difficulty never stops climbing.</p>
+    <div class="start-links">
+      <button id="btn-howto" class="btn small" type="button">HOW TO PLAY</button>
+      <button id="btn-settings" class="btn small" type="button">SETTINGS</button>
+      <button id="btn-hangar" class="btn small" type="button">HANGAR</button>
+      <button id="btn-achievements" class="btn small" type="button">ACHIEVEMENTS</button>
     </div>
-    <p class="foot">A tiny neon arcade, drawn entirely in code. No downloads, no network.</p>
+
+    <div id="panel-howto" class="panel hidden">
+      <h2>HOW TO PLAY</h2>
+      <p>Move with <b>Arrow keys / WASD</b> or the <b>mouse</b>. Hold <b>Space</b> or the <b>mouse button</b> to fire.</p>
+      <p><b>Missions:</b> every level has one goal — collect stars, destroy enemies, survive, or sink the boss. Finish it to earn stars ★ and shards ◆, then spend shards in the shop.</p>
+      <p><b>Combo:</b> collect stars quickly to raise the multiplier. <b>Graze</b> a rock for +5.</p>
+      <p><b>Power-ups:</b> S shield · ◷ slow-mo · ♥ extra life · M magnet · ×2 double score · ⁂ spread fire · ✹ screen bomb.</p>
+      <p><b>Enemies:</b> rocks, speeders, splitters, mines (keep your distance — they explode), drones, gunners that shoot back, swarms, and colossi. A raider gunship guards every 3rd level; a mothership guards every 5th.</p>
+      <p><b>P</b> pause · <b>M</b> mute · <b>R</b> restart after game over.</p>
+    </div>
+
+    <div id="panel-settings" class="panel hidden">
+      <h2>SETTINGS</h2>
+      <label class="setting-row">Music <input id="set-music" type="range" min="0" max="100" value="70"></label>
+      <label class="setting-row">Sound FX <input id="set-sfx" type="range" min="0" max="100" value="80"></label>
+      <button id="set-mute" class="btn small" type="button">🔊 SOUND ON</button>
+    </div>
+
+    <div id="panel-hangar" class="panel hidden">
+      <h2>HANGAR — SHIP SKINS</h2>
+      <p id="hangar-shards">◆ 0 lifetime shards earned</p>
+      <div id="hangar-cards"></div>
+      <p class="panel-note">Skins unlock with lifetime shards or by beating level 10. Your collection never resets.</p>
+    </div>
+
+    <div id="panel-achievements" class="panel hidden">
+      <h2>ACHIEVEMENTS</h2>
+      <p id="achievements-count">0 / 10 unlocked</p>
+      <ul id="achievements-list"></ul>
+    </div>
+
+    <div class="best-line">CAMPAIGN BEST: <span id="start-best">0</span> · ENDLESS BEST: <span id="start-best-endless">0</span></div>
+    <div class="top-pilots">
+      <h2>TOP PILOTS</h2>
+      <ol id="start-top"></ol>
+    </div>
+    <p class="foot">No sign-up. No downloads. Your best flights stay on this device.</p>
   </div>
-  <div id="screen-over" class="screen hidden">
-    <h1 class="title small">GAME OVER</h1>
-    <p class="final-score">SCORE <span id="final-score">0</span></p>
-    <p class="final-best">BEST <span id="final-best">0</span> <span id="final-newbest" class="newbest hidden">★ NEW BEST ★</span></p>
-    <p class="final-stats"><span id="final-stars">0</span> stars &nbsp;·&nbsp; level <span id="final-level">1</span> &nbsp;·&nbsp; max combo ×<span id="final-combo">1</span></p>
-    <div class="top-box">
-      <p class="top-title">★ TOP PILOTS ★</p>
-      <ol id="final-top" class="top-list"></ol>
-    </div>
-    <button id="btn-restart" class="btn">↻ &nbsp;FLY AGAIN &nbsp;(R)</button>
+
+  <div id="screen-mission" class="screen hidden">
+    <h1 class="title small">MISSION COMPLETE</h1>
+    <p id="mission-label" class="tagline"></p>
+    <div id="mission-stars" class="mission-stars">★★★</div>
+    <p id="mission-reward" class="mission-reward">+30 shards</p>
+    <button id="btn-mission-continue" class="btn primary" type="button">CONTINUE → SHOP</button>
   </div>
+
+  <div id="screen-shop" class="screen hidden">
+    <h1 class="title small">UPGRADE SHOP</h1>
+    <p class="tagline">Spend your shards before the next level.</p>
+    <p id="shop-shards" class="shop-shards">◆ 0 shards</p>
+    <div id="shop-cards"></div>
+    <button id="btn-shop-continue" class="btn primary" type="button">LAUNCH → NEXT LEVEL</button>
+  </div>
+
   <div id="screen-pause" class="screen hidden">
     <h1 class="title small">PAUSED</h1>
-    <p class="tagline">Press P or click resume to keep flying.</p>
-    <button id="btn-resume" class="btn">▶ &nbsp;RESUME</button>
+    <p class="tagline">The stars will wait. Probably.</p>
+    <button id="btn-resume" class="btn primary" type="button">RESUME</button>
+    <button id="btn-menu" class="btn" type="button">QUIT TO MENU</button>
+  </div>
+
+  <div id="screen-victory" class="screen hidden">
+    <h1 class="title">CAMPAIGN COMPLETE!</h1>
+    <p class="tagline">You sank every mothership and cleared all 15 levels. The galaxy is yours, pilot.</p>
+    <p class="final-line">FINAL SCORE <span id="victory-score">0</span></p>
+    <p class="final-line">MISSION STARS <span id="victory-stars">0 / 45</span></p>
+    <button id="btn-victory-again" class="btn primary" type="button">PLAY AGAIN</button>
+    <button id="btn-victory-menu" class="btn" type="button">MAIN MENU</button>
+  </div>
+
+  <div id="screen-over" class="screen hidden">
+    <h1 class="title small">GAME OVER</h1>
+    <p class="tagline">The stars keep falling. So will you — again.</p>
+    <p class="final-line">SCORE <span id="final-score">0</span></p>
+    <p class="final-line">BEST <span id="final-best">0</span></p>
+    <p id="final-newbest" class="newbest hidden">★ NEW BEST! ★</p>
+    <div class="run-stats">
+      <div><span>STARS</span><b id="final-stars">0</b></div>
+      <div><span>LEVEL</span><b id="final-level">1</b></div>
+      <div><span>MAX COMBO</span><b id="final-combo">0</b></div>
+      <div><span>ENEMIES DOWN</span><b id="final-kills">0</b></div>
+      <div><span>BOSSES DOWN</span><b id="final-bosses">0</b></div>
+      <div><span>UPGRADES BOUGHT</span><b id="final-upgrades">0</b></div>
+      <div><span>SHARDS EARNED</span><b id="final-shards">0</b></div>
+    </div>
+    <button id="btn-restart" class="btn primary" type="button">FLY AGAIN (R)</button>
+    <div class="top-pilots">
+      <h2>TOP PILOTS</h2>
+      <ol id="final-top"></ol>
+    </div>
   </div>
 </div>
 <script type="module" src="src/main.js"></script>
