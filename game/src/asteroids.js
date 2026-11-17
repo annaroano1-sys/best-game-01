@@ -1,17 +1,10 @@
-// Asteroids: jagged grey rocks that tumble down the screen. They spawn
-// faster and fall quicker as the level rises, and the ship loses a life
-// (or a shield) on contact.
-
+// STARFALL — the tumbling rocks: shootable, with hit points.
 import { ASTEROID, VIEW } from './config.js';
 import { rand, randInt, pick } from './random.js';
-
 const ROCK_COLORS = ['#8d99ae', '#7a6f8f', '#9c7a5b', '#6b7f8f'];
-
 export function createAsteroidField() {
   return { list: [], spawnTimer: 0 };
 }
-
-// Rocks take hits now that the ship can shoot: big rocks need two shots.
 export function makeAsteroid(level) {
   const radius = rand(ASTEROID.radiusMin, ASTEROID.radiusMax);
   const speed = Math.min(
@@ -39,7 +32,6 @@ export function makeAsteroid(level) {
     color: pick(ROCK_COLORS),
   };
 }
-
 export function updateAsteroids(field, level, dt, timeScale, spawnScale = 1) {
   const rate = (ASTEROID.baseSpawnPerSec + (level - 1) * ASTEROID.spawnGrowth) * spawnScale;
   field.spawnTimer -= dt * timeScale;
@@ -56,32 +48,34 @@ export function updateAsteroids(field, level, dt, timeScale, spawnScale = 1) {
   }
   field.list = field.list.filter((a) => a.y - a.radius < VIEW.height + 20);
 }
-
-/** Bullets vs rocks. Returns events the game loop turns into points. */
-export function resolveRockHits(field, bullets) {
+export function resolveRockHits(field, bullets, piercing = false) {
   const events = [];
   for (const b of bullets) {
     if (b.spent) continue;
     for (const a of field.list) {
+      if (b.hit && b.hit.has(a)) continue;
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const r = b.radius + a.radius;
       if (dx * dx + dy * dy >= r * r) continue;
-      b.spent = true;
-      a.hp -= 1;
+      if (piercing) {
+        if (!b.hit) b.hit = new Set();
+        b.hit.add(a);
+      } else {
+        b.spent = true;
+      }
+      a.hp -= b.damage ?? 1;
       if (a.hp <= 0) {
         field.list = field.list.filter((other) => other !== a);
-        events.push({ type: 'destroyed', x: a.x, y: a.y, score: a.score, enemy: a });
+        events.push({ type: 'destroyed', x: a.x, y: a.y, score: a.score, damage: b.damage ?? 1, enemy: a });
       } else {
-        events.push({ type: 'hit', x: a.x, y: a.y, score: 0, enemy: a });
+        events.push({ type: 'hit', x: a.x, y: a.y, score: 0, damage: b.damage ?? 1, enemy: a });
       }
       break;
     }
   }
   return events;
 }
-
-/** Draw every rock as a jagged polygon with a cratered glow. */
 export function drawAsteroids(ctx, field) {
   for (const a of field.list) {
     ctx.save();
@@ -103,7 +97,6 @@ export function drawAsteroids(ctx, field) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.lineWidth = 1.5;
     ctx.stroke();
-    // A damaged rock shows a crack before it breaks.
     if (a.hp < a.maxHp) {
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
       ctx.lineWidth = 2;
@@ -113,7 +106,6 @@ export function drawAsteroids(ctx, field) {
       ctx.lineTo(a.radius * 0.45, -a.radius * 0.35);
       ctx.stroke();
     }
-    // Craters.
     ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
     ctx.beginPath();
     ctx.arc(-a.radius * 0.3, -a.radius * 0.2, a.radius * 0.22, 0, Math.PI * 2);
