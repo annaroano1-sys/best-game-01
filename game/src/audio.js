@@ -1,12 +1,7 @@
-// STARFALL sound: every effect is synthesized with WebAudio oscillators,
-// so the game ships no audio files and makes no network request.
-// The context is created lazily on the first user gesture (browsers require it).
-// Volume and mute follow the settings screen.
-
+// STARFALL — sound: every effect synthesized with WebAudio, no files.
 let ctx = null;
 let muted = false;
 let volume = 0.8;
-
 export function ensureAudio() {
   if (ctx === null) {
     const AudioCtx = window.AudioContext ?? window.webkitAudioContext;
@@ -15,12 +10,10 @@ export function ensureAudio() {
   if (ctx && ctx.state === 'suspended') void ctx.resume();
   return ctx;
 }
-
 export function setMuted(value) { muted = value; }
 export function isMuted() { return muted; }
 export function setSfxVolume(v) { volume = v; }
 export function setSfxMuted(m) { muted = m; }
-
 function tone({ freq, freqEnd = null, dur = 0.12, type = 'sine', gain = 0.12, delay = 0 }) {
   if (muted) return;
   const ac = ensureAudio();
@@ -38,7 +31,6 @@ function tone({ freq, freqEnd = null, dur = 0.12, type = 'sine', gain = 0.12, de
   osc.start(t0);
   osc.stop(t0 + dur + 0.05);
 }
-
 function noiseBurst({ dur = 0.25, gain = 0.2, cutoff = 900 }) {
   if (muted) return;
   const ac = ensureAudio();
@@ -59,100 +51,80 @@ function noiseBurst({ dur = 0.25, gain = 0.2, cutoff = 900 }) {
   src.connect(filter).connect(amp).connect(ac.destination);
   src.start(t0);
 }
-
-/** A star was collected: pitch climbs with the combo so chains sing. */
 export function playCollect(combo) {
   const base = 620 + Math.min(combo, 12) * 45;
   tone({ freq: base, freqEnd: base * 1.6, dur: 0.14, type: 'triangle', gain: 0.14 });
 }
-
-/** The ship took a hit. */
 export function playHit() {
   noiseBurst({ dur: 0.3, gain: 0.25, cutoff: 700 });
   tone({ freq: 160, freqEnd: 50, dur: 0.3, type: 'sawtooth', gain: 0.16 });
 }
-
-/** A power-up was grabbed. */
 export function playPowerup() {
   tone({ freq: 440, dur: 0.1, type: 'square', gain: 0.08 });
   tone({ freq: 660, dur: 0.1, type: 'square', gain: 0.08, delay: 0.09 });
   tone({ freq: 880, dur: 0.18, type: 'square', gain: 0.08, delay: 0.18 });
 }
-
-/** A level was cleared. */
 export function playLevelUp() {
   [523, 659, 784, 1047].forEach((f, i) => tone({ freq: f, dur: 0.16, type: 'triangle', gain: 0.12, delay: i * 0.09 }));
 }
-
-/** The run ended. */
 export function playGameOver() {
   [392, 330, 262, 196].forEach((f, i) => tone({ freq: f, dur: 0.28, type: 'sawtooth', gain: 0.1, delay: i * 0.16 }));
 }
-
-/** A soft click for buttons. */
 export function playClick() {
   tone({ freq: 880, freqEnd: 660, dur: 0.06, type: 'sine', gain: 0.08 });
 }
-
-/** A shot leaves the ship: a short bright zap. */
 export function playShoot() {
   tone({ freq: 980, freqEnd: 320, dur: 0.09, type: 'square', gain: 0.05 });
 }
-
-/** Something blew up: a deep crunch. */
 export function playExplode() {
   noiseBurst({ dur: 0.4, gain: 0.3, cutoff: 500 });
   tone({ freq: 120, freqEnd: 38, dur: 0.35, type: 'sawtooth', gain: 0.18 });
 }
-
-/** A bullet hit the boss: a metallic clank. */
 export function playBossHit() {
   tone({ freq: 220, freqEnd: 180, dur: 0.07, type: 'square', gain: 0.07 });
 }
-
-/** The boss went down: a rising fanfare. */
 export function playBossDown() {
   [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone({ freq: f, dur: 0.2, type: 'triangle', gain: 0.12, delay: i * 0.1 }));
 }
-
-/** The magnet snapped on. */
 export function playMagnet() {
   tone({ freq: 300, freqEnd: 900, dur: 0.18, type: 'sine', gain: 0.1 });
 }
-
-/** A graze: a quick whoosh for a near miss. */
 export function playNearMiss() {
   noiseBurst({ dur: 0.12, gain: 0.08, cutoff: 2400 });
 }
-
-/** A screen bomb went off: a huge boom. */
 export function playBomb() {
   noiseBurst({ dur: 0.7, gain: 0.4, cutoff: 400 });
   tone({ freq: 90, freqEnd: 28, dur: 0.6, type: 'sawtooth', gain: 0.22 });
   tone({ freq: 1047, freqEnd: 2093, dur: 0.25, type: 'triangle', gain: 0.08, delay: 0.05 });
 }
-
-/** An upgrade was bought: a happy chime. */
 export function playBuy() {
   [660, 880, 1320].forEach((f, i) => tone({ freq: f, dur: 0.12, type: 'triangle', gain: 0.1, delay: i * 0.07 }));
 }
-
-/** An achievement unlocked: a bright fanfare. */
 export function playAchievement() {
   [784, 988, 1175, 1568].forEach((f, i) => tone({ freq: f, dur: 0.18, type: 'triangle', gain: 0.1, delay: i * 0.08 }));
 }
-
-/** A raider was hit: a sharp clank. */
 export function playMinibossHit() {
   tone({ freq: 300, freqEnd: 240, dur: 0.06, type: 'square', gain: 0.07 });
 }
-
-/** A raider went down: a short fanfare. */
 export function playMinibossDown() {
   [523, 659, 880, 1175].forEach((f, i) => tone({ freq: f, dur: 0.16, type: 'triangle', gain: 0.11, delay: i * 0.08 }));
 }
-
-/** An enemy bolt was fired: a low warning zap. */
 export function playEnemyShoot() {
   tone({ freq: 220, freqEnd: 110, dur: 0.12, type: 'sawtooth', gain: 0.05 });
+}
+export function playBossIntro() {
+  tone({ freq: 110, freqEnd: 440, dur: 0.5, type: 'sawtooth', gain: 0.12 });
+  noiseBurst({ dur: 0.5, gain: 0.25, cutoff: 400 });
+  tone({ freq: 65, freqEnd: 30, dur: 0.55, type: 'sine', gain: 0.22 });
+}
+export function playComboMilestone() {
+  tone({ freq: 1047, dur: 0.12, type: 'triangle', gain: 0.12 });
+  tone({ freq: 1568, dur: 0.2, type: 'triangle', gain: 0.12, delay: 0.09 });
+}
+export function playLowHealth() {
+  tone({ freq: 220, dur: 0.16, type: 'square', gain: 0.09 });
+  tone({ freq: 180, dur: 0.22, type: 'square', gain: 0.09, delay: 0.18 });
+}
+export function playRushClear() {
+  [523, 659, 784, 1047, 1319].forEach((f, i) => tone({ freq: f, dur: 0.18, type: 'triangle', gain: 0.12, delay: i * 0.09 }));
 }
