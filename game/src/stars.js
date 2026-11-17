@@ -1,14 +1,9 @@
-// Stars and power-ups: golden stars rain down to be collected (each one
-// feeds the combo chain), and glowing orbs grant shields, slow motion,
-// magnets, double score — and now screen bombs and spread fire too.
-
+// STARFALL — collectible stars, comets and power-ups.
 import { STAR, POWERUP, VIEW } from './config.js';
 import { rand, pick } from './random.js';
-
 export function createStarField() {
   return { stars: [], powerups: [], spawnTimer: 0, powerupTimer: POWERUP.spawnEverySec };
 }
-
 function makeStar(level) {
   const speed = Math.min(STAR.baseSpeed + (level - 1) * STAR.speedGrowth, STAR.maxSpeed);
   const comet = Math.random() < STAR.cometChance;
@@ -23,16 +18,26 @@ function makeStar(level) {
     comet,
   };
 }
-
-function makePowerup() {
+function makePowerup(forceKind = null) {
+  if (forceKind) return {
+    x: rand(60, VIEW.width - 60),
+    y: -30,
+    vy: POWERUP.fallSpeed,
+    radius: POWERUP.radius,
+    kind: forceKind,
+    phase: rand(0, Math.PI * 2),
+  };
   const roll = Math.random();
-  const kind = roll < 0.18 ? 'shield'
-    : roll < 0.34 ? 'slowmo'
-    : roll < 0.46 ? 'life'
-    : roll < 0.62 ? 'magnet'
-    : roll < 0.76 ? 'double'
-    : roll < 0.88 ? 'spread'
-    : 'bomb';
+  const kind = roll < 0.15 ? 'shield'
+    : roll < 0.28 ? 'slowmo'
+    : roll < 0.37 ? 'life'
+    : roll < 0.50 ? 'magnet'
+    : roll < 0.61 ? 'double'
+    : roll < 0.70 ? 'spread'
+    : roll < 0.78 ? 'bomb'
+    : roll < 0.86 ? 'overdrive'
+    : roll < 0.93 ? 'ghost'
+    : 'pierce';
   return {
     x: rand(60, VIEW.width - 60),
     y: -30,
@@ -42,8 +47,6 @@ function makePowerup() {
     phase: rand(0, Math.PI * 2),
   };
 }
-
-/** A supply-drop event drops three orbs at once. */
 export function dropSupply(field) {
   for (let i = 0; i < 3; i++) {
     const p = makePowerup();
@@ -52,7 +55,14 @@ export function dropSupply(field) {
     field.powerups.push(p);
   }
 }
-
+export function dropPowerup(field, x, y, kind = null) {
+  const p = makePowerup();
+  if (kind) p.kind = kind;
+  p.x = Math.max(40, Math.min(VIEW.width - 40, x));
+  p.y = Math.max(20, y);
+  field.powerups.push(p);
+  return p;
+}
 export function updateStars(field, level, dt, timeScale, starMult = 1) {
   const rate = (STAR.baseSpawnPerSec + (level - 1) * STAR.spawnGrowth) * starMult;
   field.spawnTimer -= dt * timeScale;
@@ -62,7 +72,8 @@ export function updateStars(field, level, dt, timeScale, starMult = 1) {
   }
   field.powerupTimer -= dt * timeScale;
   if (field.powerupTimer <= 0) {
-    field.powerups.push(makePowerup());
+    field.powerups.push(makePowerup(field.forcePowerup ?? null));
+    field.forcePowerup = null;
     field.powerupTimer = POWERUP.spawnEverySec * rand(0.8, 1.3);
   }
   for (const s of field.stars) {
@@ -77,7 +88,6 @@ export function updateStars(field, level, dt, timeScale, starMult = 1) {
   field.stars = field.stars.filter((s) => s.y - s.radius < VIEW.height + 20);
   field.powerups = field.powerups.filter((p) => p.y - p.radius < VIEW.height + 20);
 }
-
 function drawStarShape(ctx, x, y, radius, rotation) {
   ctx.save();
   ctx.translate(x, y);
@@ -95,7 +105,6 @@ function drawStarShape(ctx, x, y, radius, rotation) {
   ctx.fill();
   ctx.restore();
 }
-
 export function drawStars(ctx, field, now) {
   for (const s of field.stars) {
     const pulse = 0.75 + Math.sin(s.phase) * 0.25;
@@ -119,6 +128,9 @@ export function drawStars(ctx, field, now) {
       double: { label: '×2', color: '#39c6ff', dark: '#06283d' },
       spread: { label: '⁂', color: '#ff9f43', dark: '#3d1a00' },
       bomb: { label: '✹', color: '#ff5d5d', dark: '#3d0a0a' },
+      overdrive: { label: 'R', color: '#ff2e88', dark: '#3d0a24' },
+      ghost: { label: 'G', color: '#b388ff', dark: '#241040' },
+      pierce: { label: '⇶', color: '#9bf00b', dark: '#1a2e00' },
     }[p.kind];
     ctx.shadowColor = style.color;
     ctx.fillStyle = style.color;
