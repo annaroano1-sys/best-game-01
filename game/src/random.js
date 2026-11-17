@@ -1,6 +1,4 @@
-// Tiny deterministic helpers: a seeded generator for the starfield backdrop
-// (so the sky looks the same every run) and the everyday random helpers.
-
+// STARFALL — seeded randomness for a deterministic-friendly sky.
 export function mulberry32(seed) {
   let a = seed >>> 0;
   return function next() {
@@ -10,23 +8,15 @@ export function mulberry32(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-
-/** A number in [min, max). */
 export function rand(min, max) {
   return min + Math.random() * (max - min);
 }
-
-/** A random integer in [min, max]. */
 export function randInt(min, max) {
   return Math.floor(rand(min, max + 1));
 }
-
-/** Pick one element of an array at random. */
 export function pick(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
-
-/** Clamp a value into [min, max]. */
 export function clamp(value, min, max) {
   return value < min ? min : value > max ? max : value;
 }
