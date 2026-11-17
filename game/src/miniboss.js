@@ -1,11 +1,6 @@
-// The RAIDER mini-boss: a fast gunship that guards levels 3, 6, 9 and 12.
-// It strafes across the upper screen, fires aimed bolts at the ship, and
-// takes a dozen hits to destroy. Beating it pays a bonus and drops two
-// power-ups. Its health shows as pips above the hull.
-
+// STARFALL — the raider gunship that guards every 3rd level.
 import { MINIBOSS, VIEW } from './config.js';
 import { rand } from './random.js';
-
 export function createMiniboss(number) {
   const hp = MINIBOSS.hp + (number - 1) * MINIBOSS.hpGrowth;
   return {
@@ -22,11 +17,6 @@ export function createMiniboss(number) {
     dead: false,
   };
 }
-
-/**
- * Move the raider and decide when it fires. Returns 'shoot' when a bolt
- * should be fired at the ship — the game loop turns that into the bolt.
- */
 export function updateMiniboss(m, dt, timeScale, now) {
   m.phase += dt;
   m.x += m.vx * dt * timeScale;
@@ -40,8 +30,6 @@ export function updateMiniboss(m, dt, timeScale, now) {
   }
   return null;
 }
-
-/** A bullet hit the raider. Returns true when that hit destroyed it. */
 export function hitMiniboss(m, now, damage = 1) {
   m.hp -= damage;
   m.flashUntil = now + 90;
@@ -51,14 +39,12 @@ export function hitMiniboss(m, now, damage = 1) {
   }
   return false;
 }
-
 export function drawMiniboss(ctx, m, now) {
   const flash = now < m.flashUntil;
   ctx.save();
   ctx.translate(m.x, m.y);
   ctx.shadowColor = '#ff9f43';
   ctx.shadowBlur = 24;
-  // Hull: a swept dart with swept wings.
   const grad = ctx.createLinearGradient(0, -20, 0, 24);
   grad.addColorStop(0, flash ? '#ffffff' : '#ffd166');
   grad.addColorStop(0.5, flash ? '#ffe66d' : '#ff9f43');
@@ -73,13 +59,11 @@ export function drawMiniboss(ctx, m, now) {
   ctx.lineTo(m.radius, -8);
   ctx.closePath();
   ctx.fill();
-  // Eye.
   ctx.shadowBlur = 12;
   ctx.fillStyle = flash ? '#ffffff' : '#ff5d5d';
   ctx.beginPath();
   ctx.arc(0, -6, 6 + Math.sin(now / 160) * 1.5, 0, Math.PI * 2);
   ctx.fill();
-  // Health pips.
   ctx.shadowBlur = 0;
   for (let i = 0; i < m.maxHp; i++) {
     ctx.fillStyle = i < m.hp ? '#ff9f43' : 'rgba(255, 159, 67, 0.25)';
