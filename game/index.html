@@ -14,17 +14,22 @@
     <div class="hud-left">
       <div class="hud-line"><span class="hud-label">SCORE</span> <span id="hud-score">0</span></div>
       <div class="hud-line"><span class="hud-label">SHARDS</span> <span id="hud-shards">◆ 0</span></div>
+      <div class="hud-line"><span class="hud-label">BOMBS</span> <span id="hud-bombs">💣×3</span></div>
       <div class="hud-line"><span class="hud-label">MISSION</span> <span id="hud-mission"></span></div>
+      <div class="mission-meter"><div id="hud-mission-fill"></div></div>
       <div class="hud-line"><span class="hud-label">SECTOR</span> <span id="hud-sector"></span></div>
     </div>
     <div class="hud-right">
       <div class="hud-line"><span class="hud-label">LEVEL</span> <span id="hud-level">1</span></div>
-      <div class="hud-line"><span class="hud-label">LIVES</span> <span id="hud-lives">♥♥♥</span></div>
-      <div class="hud-line"><span class="hud-label">SHIELD</span> <span id="hud-shield">—</span></div>
-      <div class="hud-line hud-combo"><span id="hud-combo"></span></div>
+      <div class="hud-line"><span class="hud-label">LIVES</span> <span id="hud-lives" class="life-pips"></span></div>
+      <div class="hud-line"><span class="hud-label">SHIELD</span> <span id="hud-shield"></span></div>
+      <div class="hud-line hud-combo"><span id="hud-combo"></span><span class="combo-meter"><span id="hud-combo-fill"></span></span></div>
       <div class="hud-line hud-mute"><span id="hud-mute"></span></div>
     </div>
   </div>
+  <div id="hud-fx" class="hidden"></div>
+
+  <button id="btn-bomb" class="bomb-btn hidden" type="button" aria-label="Drop a bomb">💣<span id="btn-bomb-count">3</span></button>
 
   <div id="boss-bar" class="hidden">
     <div id="boss-name">MOTHERSHIP</div>
@@ -35,28 +40,36 @@
   <div id="hud-toast"></div>
 
   <div id="screen-start" class="screen">
+    <div class="start-ship" aria-hidden="true"></div>
     <h1 class="title">STARFALL</h1>
     <p class="tagline">Collect the stars. Dodge the rocks. Sink the mothership.</p>
     <div class="start-modes">
       <button id="btn-start" class="btn primary" type="button">▶ PLAY CAMPAIGN</button>
       <button id="btn-endless" class="btn" type="button">∞ ENDLESS DRIFT</button>
+      <button id="btn-rush" class="btn rush" type="button">⚔ BOSS RUSH</button>
     </div>
     <p class="mode-note">Campaign: 15 missions across 3 sectors — beat the mothership on level 15.<br>
-      Endless Drift: survive as long as you can. Difficulty never stops climbing.</p>
+      Endless Drift: survive as long as you can. Difficulty never stops climbing.<br>
+      Boss Rush: all three sector bosses back to back, with a shop breather between them.</p>
     <div class="start-links">
       <button id="btn-howto" class="btn small" type="button">HOW TO PLAY</button>
       <button id="btn-settings" class="btn small" type="button">SETTINGS</button>
       <button id="btn-hangar" class="btn small" type="button">HANGAR</button>
       <button id="btn-achievements" class="btn small" type="button">ACHIEVEMENTS</button>
+      <button id="btn-profile" class="btn small" type="button">PILOT PROFILE</button>
     </div>
 
     <div id="panel-howto" class="panel hidden">
       <h2>HOW TO PLAY</h2>
-      <p>Move with <b>Arrow keys / WASD</b> or the <b>mouse</b>. Hold <b>Space</b> or the <b>mouse button</b> to fire.</p>
-      <p><b>Missions:</b> every level has one goal — collect stars, destroy enemies, survive, or sink the boss. Finish it to earn stars ★ and shards ◆, then spend shards in the shop.</p>
-      <p><b>Combo:</b> collect stars quickly to raise the multiplier. <b>Graze</b> a rock for +5.</p>
-      <p><b>Power-ups:</b> S shield · ◷ slow-mo · ♥ extra life · M magnet · ×2 double score · ⁂ spread fire · ✹ screen bomb.</p>
-      <p><b>Enemies:</b> rocks, speeders, splitters, mines (keep your distance — they explode), drones, gunners that shoot back, swarms, and colossi. A raider gunship guards every 3rd level; a mothership guards every 5th.</p>
+      <p><b>1 · Fly.</b> Move with <b>Arrow keys / WASD</b> or steer with the <b>mouse</b>. Hold <b>Space</b> or the <b>mouse button</b> to fire — big rocks take two hits, colossi take six.</p>
+      <p><b>2 · Collect.</b> Catch golden stars: each one scores and feeds your <b>combo</b> — grab the next one quickly to keep the chain alive. Rare golden comets pay 50. Graze a rock without touching it for +5.</p>
+      <p><b>3 · Finish the mission.</b> Every level has one goal — collect stars, destroy enemies, survive 45 seconds, or sink the boss. Finish it clean (no hits) for ★★★ and a shard reward.</p>
+      <p><b>4 · Spend shards in the shop.</b> Between levels, buy rapid fire, heavy rounds, spread cannon, hull, shield and magnet upgrades — each with 3 ranks.</p>
+      <p><b>5 · Sink the guardians.</b> A raider gunship hunts you every 3rd level; a mothership guards every 5th. Each sector's boss fights differently — the Ember Hive breathes fire, the Void Wraith blinks across the sky.</p>
+      <p><b>💣 Bombs.</b> Every run starts with <b>3 bombs</b> — press <b>B</b> or tap the big <b>💣 button</b> (bottom right) to clear the sky: every enemy on screen takes a huge hit, all enemy bullets vanish, and guardians take heavy damage (but never die instantly). Finish a mission to earn <b>+1 bomb</b>, up to 5. Save them for the boss.</p>
+      <p><b>Power-ups:</b> S shield · ◷ slow-mo · ♥ extra life · M magnet · ×2 double score · ⁂ spread fire · ✹ screen bomb · R overdrive · G ghost (fly through anything) · ⇶ piercing shots (bullets fly through enemies).</p>
+      <p><b>Enemies:</b> rocks, speeders, splitters, mines (keep your distance — they explode), drones, gunners that shoot back, swarms, colossi, dashers that charge at you, snipers that draw an aim line before firing, weavers that sine-weave across the sky, and carriers — slow freighters that drop a power-up when cracked open.</p>
+      <p><b>Boss Rush:</b> fight the Mothership, the Ember Hive and the Void Wraith back to back, with a shop breather between bosses. Sink all three to win.</p>
       <p><b>P</b> pause · <b>M</b> mute · <b>R</b> restart after game over.</p>
     </div>
 
@@ -76,11 +89,17 @@
 
     <div id="panel-achievements" class="panel hidden">
       <h2>ACHIEVEMENTS</h2>
-      <p id="achievements-count">0 / 10 unlocked</p>
+      <p id="achievements-count">0 / 15 unlocked</p>
       <ul id="achievements-list"></ul>
     </div>
 
-    <div class="best-line">CAMPAIGN BEST: <span id="start-best">0</span> · ENDLESS BEST: <span id="start-best-endless">0</span></div>
+    <div id="panel-profile" class="panel hidden">
+      <h2>PILOT PROFILE</h2>
+      <p class="panel-note">Your career across every run, saved on this device.</p>
+      <div id="profile-stats" class="profile-stats"></div>
+    </div>
+
+    <div class="best-line">CAMPAIGN BEST: <span id="start-best">0</span> · ENDLESS BEST: <span id="start-best-endless">0</span> · RUSH BEST: <span id="start-best-rush">0</span></div>
     <div class="top-pilots">
       <h2>TOP PILOTS</h2>
       <ol id="start-top"></ol>
@@ -98,7 +117,7 @@
 
   <div id="screen-shop" class="screen hidden">
     <h1 class="title small">UPGRADE SHOP</h1>
-    <p class="tagline">Spend your shards before the next level.</p>
+    <p id="shop-tagline" class="tagline">Spend your shards before the next level.</p>
     <p id="shop-shards" class="shop-shards">◆ 0 shards</p>
     <div id="shop-cards"></div>
     <button id="btn-shop-continue" class="btn primary" type="button">LAUNCH → NEXT LEVEL</button>
@@ -107,15 +126,26 @@
   <div id="screen-pause" class="screen hidden">
     <h1 class="title small">PAUSED</h1>
     <p class="tagline">The stars will wait. Probably.</p>
+    <div class="pause-stats">
+      <div><span>SCORE</span><b id="pause-score">0</b></div>
+      <div><span>LEVEL</span><b id="pause-level">1</b></div>
+      <div><span>MISSION</span><b id="pause-mission">—</b></div>
+    </div>
     <button id="btn-resume" class="btn primary" type="button">RESUME</button>
     <button id="btn-menu" class="btn" type="button">QUIT TO MENU</button>
   </div>
 
   <div id="screen-victory" class="screen hidden">
-    <h1 class="title">CAMPAIGN COMPLETE!</h1>
-    <p class="tagline">You sank every mothership and cleared all 15 levels. The galaxy is yours, pilot.</p>
+    <h1 id="victory-title" class="title">CAMPAIGN COMPLETE!</h1>
+    <p id="victory-tagline" class="tagline">You sank every mothership and cleared all 15 levels. The galaxy is yours, pilot.</p>
     <p class="final-line">FINAL SCORE <span id="victory-score">0</span></p>
-    <p class="final-line">MISSION STARS <span id="victory-stars">0 / 45</span></p>
+    <p class="final-line"><span id="victory-stars-label">MISSION STARS</span> <span id="victory-stars">0 / 45</span></p>
+    <div class="run-stats">
+      <div><span>ENEMIES DOWN</span><b id="victory-kills">0</b></div>
+      <div><span>MAX COMBO</span><b id="victory-combo">×0</b></div>
+      <div><span>BOSSES DOWN</span><b id="victory-bosses">0</b></div>
+      <div><span>SECTORS CLEARED</span><b>3 / 3</b></div>
+    </div>
     <button id="btn-victory-again" class="btn primary" type="button">PLAY AGAIN</button>
     <button id="btn-victory-menu" class="btn" type="button">MAIN MENU</button>
   </div>
