@@ -1,22 +1,21 @@
-// STARFALL input: keyboard (arrows + WASD), mouse steering, and the
-// action keys (start, restart, pause). One object, read by the ship and by
-// the game loop; nothing here knows about the game state.
-
+// STARFALL — keyboard, mouse and fire input.
 const KEYMAP = {
   ArrowLeft: 'left', KeyA: 'left',
   ArrowRight: 'right', KeyD: 'right',
   ArrowUp: 'up', KeyW: 'up',
   ArrowDown: 'down', KeyS: 'down',
 };
-
 export function createInput(canvas) {
   const held = new Set();
   const mouse = { x: null, y: null, active: false, firing: false };
+  // Round 6.1: auto-fire — the ship always shoots, the player only steers.
+  // (Modern mobile shmup style: on a phone the player just drags to fly.)
+  const AUTO_FIRE = true;
   let pausePressed = false;
   let restartPressed = false;
   let startPressed = false;
   let mutePressed = false;
-
+  let bombPressed = false;
   function onKeyDown(event) {
     const action = KEYMAP[event.code];
     if (action) {
@@ -33,10 +32,14 @@ export function createInput(canvas) {
       return;
     }
     if (event.code === 'Space') {
-      // Space fires while playing, and starts / restarts on the screens.
       held.add('fire');
       startPressed = true;
       restartPressed = true;
+      event.preventDefault();
+      return;
+    }
+    if (event.code === 'KeyB') {
+      bombPressed = true;
       event.preventDefault();
       return;
     }
@@ -45,47 +48,61 @@ export function createInput(canvas) {
       restartPressed = true;
     }
   }
-
   function onKeyUp(event) {
     const action = KEYMAP[event.code];
     if (action) held.delete(action);
     if (event.code === 'Space') held.delete('fire');
   }
-
   function onMouseMove(event) {
     const rect = canvas.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * canvas.width;
     mouse.y = ((event.clientY - rect.top) / rect.height) * canvas.height;
     mouse.active = true;
   }
-
   function onMouseLeave() { mouse.active = false; }
-
   function onMouseDown(event) {
-    // Clicking the canvas fires; clicks on buttons are their own business.
     if (event.target === canvas) mouse.firing = true;
   }
-
   function onMouseUp() { mouse.firing = false; }
-
+  // Touch: same as mouse, but with preventDefault so the browser does not
+  // scroll/zoom instead of steering (that is why touch firing failed on phones).
+  function onTouchPos(touch) {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = ((touch.clientX - rect.left) / rect.width) * canvas.width;
+    mouse.y = ((touch.clientY - rect.top) / rect.height) * canvas.height;
+    mouse.active = true;
+  }
+  function onTouchStart(event) {
+    event.preventDefault();
+    if (event.touches[0]) onTouchPos(event.touches[0]);
+  }
+  function onTouchMove(event) {
+    event.preventDefault();
+    if (event.touches[0]) onTouchPos(event.touches[0]);
+  }
+  function onTouchEnd(event) {
+    event.preventDefault();
+    if (event.touches.length === 0) mouse.active = false;
+  }
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   canvas.addEventListener('mousemove', onMouseMove);
   canvas.addEventListener('mouseleave', onMouseLeave);
   canvas.addEventListener('mousedown', onMouseDown);
   window.addEventListener('mouseup', onMouseUp);
-
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+  canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+  canvas.addEventListener('touchcancel', onTouchEnd, { passive: false });
   return {
     held,
     mouse,
-    /** The fire button is held right now (Space or mouse). */
-    get firing() { return held.has('fire') || mouse.firing; },
-    /** True once since the last read; then cleared. */
+    get firing() { return AUTO_FIRE || held.has('fire') || mouse.firing; },
     consumePause() { const v = pausePressed; pausePressed = false; return v; },
     consumeRestart() { const v = restartPressed; restartPressed = false; return v; },
     consumeStart() { const v = startPressed; startPressed = false; return v; },
     consumeMute() { const v = mutePressed; mutePressed = false; return v; },
-    /** Forget one-shot flags (e.g. when a screen changes). */
-    clearOneShots() { pausePressed = false; restartPressed = false; startPressed = false; mutePressed = false; },
+    consumeBomb() { const v = bombPressed; bombPressed = false; return v; },
+    clearOneShots() { pausePressed = false; restartPressed = false; startPressed = false; mutePressed = false; bombPressed = false; },
   };
 }
