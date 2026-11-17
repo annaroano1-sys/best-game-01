@@ -1,4 +1,7 @@
-/* STARFALL — neon space arcade: all interface styling lives here. */
+/* STARFALL — modern neon glass: translucent panels with backdrop blur,
+   soft gradients, rounded corners and breathing animations over the live
+   starfield. The neon identity (cyan / magenta / gold on deep space)
+   stays; the chrome around it is new. */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
@@ -22,44 +25,153 @@ canvas#game {
   display: block;
   width: 1280px;
   height: 800px;
+  touch-action: none;
 }
 
 .hidden { display: none !important; }
 
-/* ---- HUD ---- */
+/* ---- HUD: glass pills floating over the action ---- */
 #hud {
   position: absolute;
   top: 0; left: 0; right: 0;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 16px 24px;
+  padding: 14px 20px 26px;
   pointer-events: none;
   text-shadow: 0 0 12px rgba(80, 200, 255, .8);
+  background: linear-gradient(180deg, rgba(4, 4, 15, .55), transparent);
   z-index: 3;
 }
-.hud-left, .hud-right { display: flex; flex-direction: column; gap: 2px; }
+.hud-left, .hud-right {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(8, 12, 32, .48);
+  -webkit-backdrop-filter: blur(12px) saturate(1.3);
+  backdrop-filter: blur(12px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 18px;
+  padding: 10px 16px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255, 255, 255, .1);
+}
 .hud-right { align-items: flex-end; text-align: right; }
-.hud-line { display: flex; align-items: baseline; gap: 8px; }
+.hud-line { display: flex; align-items: center; gap: 8px; min-height: 24px; }
 .hud-label {
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: .3em;
   color: #8fd8ff;
 }
-#hud-score { font-size: 32px; font-weight: 800; color: #fff; }
-#hud-shards { font-size: 20px; font-weight: 800; color: #ffd166; }
-#hud-mission { font-size: 16px; font-weight: 700; color: #ffe66d; }
-#hud-sector { font-size: 16px; font-weight: 700; color: #39ffb0; }
-#hud-level { font-size: 32px; font-weight: 800; color: #fff; }
-#hud-lives { font-size: 24px; letter-spacing: 2px; color: #ff5d8f; }
-#hud-shield { font-size: 18px; font-weight: 800; color: #7ef0c1; }
+#hud-score { font-size: 30px; font-weight: 800; color: #fff; line-height: 1; }
+#hud-shards { font-size: 19px; font-weight: 800; color: #ffd166; display: inline-block; }
+#hud-shards.pop { animation: shardPop .45s ease-out; }
+@keyframes shardPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+#hud-mission { font-size: 15px; font-weight: 700; color: #ffe66d; }
+#hud-sector { font-size: 15px; font-weight: 700; color: #39ffb0; }
+#hud-level { font-size: 30px; font-weight: 800; color: #fff; line-height: 1; }
 #hud-combo {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 800;
   color: #ffd166;
   text-shadow: 0 0 14px rgba(255, 190, 60, .9);
 }
 #hud-mute { font-size: 13px; font-weight: 800; letter-spacing: .15em; color: #8fd8ff; }
+#hud-bombs { font-size: 19px; font-weight: 800; color: #ff8fb0; text-shadow: 0 0 12px rgba(255, 93, 143, .8); }
+#hud-bombs.empty { color: #5a6b80; text-shadow: none; }
+
+/* Big on-screen bomb button, bottom right of the playfield. It is a DOM
+   button above the canvas (not canvas art), so a touch on it never steers
+   the ship — and 120 px on the 1280-wide stage stays thumb-sized on a phone. */
+.bomb-btn {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  z-index: 4;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 93, 93, .65);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 120, 120, .55), rgba(120, 10, 30, .55));
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .5), 0 0 26px rgba(255, 93, 93, .45), inset 0 1px 0 rgba(255, 255, 255, .25);
+  color: #fff;
+  font-size: 46px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-shadow: 0 0 12px rgba(255, 93, 93, .9);
+}
+.bomb-btn span { font-size: 26px; font-weight: 800; }
+.bomb-btn:active { transform: scale(.9); }
+.bomb-btn.empty { opacity: .35; box-shadow: 0 10px 28px rgba(0, 0, 0, .5); }
+
+/* Segmented lives / shield pips. */
+.life-pips { display: flex; gap: 4px; align-items: center; }
+.pip {
+  width: 16px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .18);
+}
+.pip.life { background: linear-gradient(90deg, #ff5d8f, #ff8fb0); box-shadow: 0 0 10px rgba(255, 93, 143, .8); }
+.pip.shield { background: linear-gradient(90deg, #7ef0c1, #39ffb0); box-shadow: 0 0 10px rgba(126, 240, 193, .8); }
+.shield-none { color: #7d9bb8; font-size: 16px; font-weight: 800; }
+
+/* Mission progress + combo drain bars. */
+.mission-meter, .combo-meter {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .12);
+  overflow: hidden;
+}
+.mission-meter { width: 100%; margin: 1px 0 2px; }
+.combo-meter { width: 110px; display: inline-block; vertical-align: middle; }
+#hud-mission-fill, #hud-combo-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  transition: width .2s linear;
+}
+#hud-mission-fill { background: linear-gradient(90deg, #39c6ff, #7ef0c1); box-shadow: 0 0 8px rgba(57, 198, 255, .8); }
+#hud-combo-fill { background: linear-gradient(90deg, #ffd166, #ff9f43); box-shadow: 0 0 8px rgba(255, 209, 102, .8); }
+.hud-combo { min-height: 22px; }
+
+/* Active power-up chips, top right under the HUD. */
+#hud-fx {
+  position: absolute;
+  top: 132px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 3;
+}
+.fx-chip {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: #fff;
+  background: rgba(8, 12, 32, .55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--fx-color, #39c6ff);
+  border-radius: 999px;
+  padding: 4px 12px;
+  box-shadow: 0 0 14px var(--fx-color, #39c6ff);
+}
 
 #hud-toast {
   position: absolute;
@@ -96,18 +208,27 @@ canvas#game {
 }
 #boss-track {
   margin-top: 5px;
-  height: 12px;
-  border: 1px solid rgba(255, 93, 143, .7);
+  height: 14px;
+  border: 1px solid rgba(255, 255, 255, .22);
   border-radius: 999px;
-  background: rgba(20, 4, 12, .7);
+  background: rgba(10, 4, 14, .55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .45);
 }
 #boss-fill {
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, #ff5d8f, #ffd166);
+  background: linear-gradient(90deg, #ff5d8f, #ffd166, #ff5d8f);
+  background-size: 200% 100%;
+  animation: barShimmer 2s linear infinite;
   box-shadow: 0 0 14px rgba(255, 93, 143, .8);
   transition: width .15s;
+}
+@keyframes barShimmer {
+  from { background-position: 0 0; }
+  to { background-position: 200% 0; }
 }
 
 /* ---- Level banner ---- */
@@ -137,7 +258,7 @@ canvas#game {
   text-shadow: 0 0 16px rgba(120, 200, 255, .9);
 }
 
-/* ---- Screens ---- */
+/* ---- Screens: glass over the living starfield ---- */
 .screen {
   position: absolute;
   inset: 0;
@@ -146,11 +267,20 @@ canvas#game {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  background: radial-gradient(ellipse at 50% 40%, rgba(20, 20, 70, .55), rgba(4, 4, 15, .9));
+  background: linear-gradient(180deg, rgba(8, 10, 32, .42), rgba(4, 4, 15, .72));
+  -webkit-backdrop-filter: blur(7px) saturate(1.25);
+  backdrop-filter: blur(7px) saturate(1.25);
   text-align: center;
   padding: 28px 40px;
   overflow-y: auto;
   z-index: 6;
+  /* Screens fade and rise in instead of snapping on. */
+  animation: screenIn .35s ease-out;
+}
+.screen > * { position: relative; z-index: 1; }
+@keyframes screenIn {
+  from { opacity: 0; transform: scale(.97); }
+  to { opacity: 1; transform: scale(1); }
 }
 .title {
   font-size: 84px;
@@ -162,6 +292,11 @@ canvas#game {
   background-clip: text;
   color: transparent;
   filter: drop-shadow(0 0 26px rgba(255, 150, 80, .65));
+  animation: titleFloat 3.4s ease-in-out infinite;
+}
+@keyframes titleFloat {
+  0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 22px rgba(255, 150, 80, .55)); }
+  50% { transform: translateY(-7px); filter: drop-shadow(0 0 34px rgba(255, 150, 80, .85)); }
 }
 .title.small { font-size: 60px; }
 .tagline { font-size: 20px; color: #bfe6ff; max-width: 760px; }
@@ -172,7 +307,30 @@ canvas#game {
 .final-line span { color: #ffd166; font-size: 34px; }
 .newbest { color: #ffe66d; font-weight: 800; font-size: 22px; text-shadow: 0 0 16px rgba(255, 220, 80, .9); }
 
-.start-modes { display: flex; gap: 16px; }
+/* A little neon dart drifting across the start screen. */
+.start-ship {
+  position: absolute;
+  left: 9%;
+  top: 64%;
+  width: 56px;
+  height: 42px;
+  z-index: 0;
+  background: linear-gradient(180deg, #bfe9ff, #39c6ff 55%, #1d6fd1);
+  /* Fighter-jet silhouette: pointed nose, swept wings, twin tail fins,
+     twin engine nozzles with a notched tail — the same interceptor the
+     canvas draws in flight, as a CSS shape. */
+  clip-path: polygon(50% 0%, 56% 26%, 62% 30%, 100% 72%, 94% 80%, 63% 60%, 70% 52%, 66% 68%, 60% 74%, 56% 100%, 50% 88%, 44% 100%, 40% 74%, 34% 68%, 30% 52%, 37% 60%, 6% 80%, 0% 72%, 38% 30%, 44% 26%);
+  filter: drop-shadow(0 0 18px rgba(57, 198, 255, .9));
+  animation: shipDrift 9s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes shipDrift {
+  from { transform: translate(0, 0) rotate(-6deg); }
+  50% { transform: translate(46px, -26px) rotate(4deg); }
+  to { transform: translate(110px, 6px) rotate(-3deg); }
+}
+
+.start-modes { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
 .start-links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 
 /* ---- Buttons ---- */
@@ -182,33 +340,50 @@ canvas#game {
   letter-spacing: .1em;
   color: #081226;
   background: linear-gradient(180deg, #7ef0c1, #2ec4b6);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, .3);
   border-radius: 999px;
   padding: 14px 40px;
   cursor: pointer;
-  box-shadow: 0 0 30px rgba(46, 196, 182, .7);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .45), 0 0 24px rgba(46, 196, 182, .45), inset 0 1px 0 rgba(255, 255, 255, .4);
   transition: transform .12s, box-shadow .12s;
 }
-.btn:hover { transform: scale(1.06); box-shadow: 0 0 44px rgba(46, 196, 182, .95); }
+.btn:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 10px 32px rgba(0, 0, 0, .5), 0 0 40px rgba(46, 196, 182, .7), inset 0 1px 0 rgba(255, 255, 255, .4); }
 .btn:active { transform: scale(.98); }
 .btn.primary {
   background: linear-gradient(180deg, #ffe66d, #ff9f43);
-  box-shadow: 0 0 30px rgba(255, 160, 60, .7);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .45), 0 0 26px rgba(255, 160, 60, .55), inset 0 1px 0 rgba(255, 255, 255, .45);
+  animation: ctaGlow 2.4s ease-in-out infinite;
 }
-.btn.primary:hover { box-shadow: 0 0 44px rgba(255, 160, 60, .95); }
+.btn.primary:hover { box-shadow: 0 10px 32px rgba(0, 0, 0, .5), 0 0 44px rgba(255, 160, 60, .85), inset 0 1px 0 rgba(255, 255, 255, .45); }
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 6px 24px rgba(0, 0, 0, .45), 0 0 22px rgba(255, 160, 60, .45), inset 0 1px 0 rgba(255, 255, 255, .45); }
+  50% { box-shadow: 0 6px 24px rgba(0, 0, 0, .45), 0 0 40px rgba(255, 160, 60, .8), inset 0 1px 0 rgba(255, 255, 255, .45); }
+}
+.btn.rush {
+  background: linear-gradient(180deg, #ff8fb0, #c2185b);
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .45), 0 0 26px rgba(255, 93, 143, .55), inset 0 1px 0 rgba(255, 255, 255, .4);
+}
+.btn.rush:hover { box-shadow: 0 10px 32px rgba(0, 0, 0, .5), 0 0 44px rgba(255, 93, 143, .85), inset 0 1px 0 rgba(255, 255, 255, .4); }
 .btn.small {
   font-size: 15px;
   padding: 9px 20px;
-  background: linear-gradient(180deg, #39c6ff, #1d6fd1);
+  background: linear-gradient(180deg, rgba(57, 198, 255, .9), rgba(29, 111, 209, .9));
   color: #eaf6ff;
-  box-shadow: 0 0 18px rgba(57, 198, 255, .5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .4), 0 0 16px rgba(57, 198, 255, .35), inset 0 1px 0 rgba(255, 255, 255, .3);
 }
 
-/* ---- Panels (how-to / settings / hangar / achievements) ---- */
+/* ---- Panels (how-to / settings / hangar / achievements / profile) ---- */
+/* One shared glass slab: every panel, pilot list and stats grid uses it. */
+.panel, .top-pilots, .pause-stats, .run-stats {
+  background: linear-gradient(160deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02));
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
 .panel {
-  background: rgba(10, 16, 44, .75);
-  border: 1px solid rgba(120, 190, 255, .35);
-  border-radius: 14px;
   padding: 16px 28px;
   max-width: 760px;
   text-align: left;
@@ -234,23 +409,40 @@ canvas#game {
 }
 .setting-row input[type="range"] { width: 260px; accent-color: #39c6ff; }
 
+/* ---- Pilot profile ---- */
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 26px;
+  margin-top: 12px;
+}
+.profile-stats div, .pause-stats div, .run-stats div { display: flex; flex-direction: column; gap: 2px; }
+.profile-stats span, .pause-stats span, .run-stats span { font-size: 11px; letter-spacing: .2em; color: #8fd8ff; }
+.profile-stats b, .pause-stats b { font-size: 22px; color: #fff; }
+
 /* ---- Hangar ---- */
 #hangar-cards { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
-.skin-card {
+/* Skin and shop cards share one small glass slab. */
+.skin-card, .shop-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  width: 150px;
+  gap: 4px;
   padding: 12px 8px;
-  background: rgba(20, 28, 66, .8);
-  border: 2px solid rgba(120, 190, 255, .3);
-  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 16px;
   cursor: pointer;
   color: #eaf6ff;
   font-family: inherit;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .35);
+  transition: transform .12s, border-color .12s, box-shadow .12s;
 }
-.skin-card:hover { border-color: #39c6ff; }
+.skin-card { gap: 6px; width: 150px; }
+.shop-card { padding: 14px 10px; }
+.skin-card:hover, .shop-card:hover { border-color: #39c6ff; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 0, 0, .45), 0 0 18px rgba(57, 198, 255, .4); }
 .skin-card.selected { border-color: #ffd166; box-shadow: 0 0 18px rgba(255, 209, 102, .6); }
 .skin-card.locked { opacity: .55; cursor: default; }
 .skin-swatch { width: 60px; height: 34px; border-radius: 8px; }
@@ -269,9 +461,6 @@ canvas#game {
 
 /* ---- Top pilots ---- */
 .top-pilots {
-  background: rgba(10, 16, 44, .6);
-  border: 1px solid rgba(120, 190, 255, .35);
-  border-radius: 14px;
   padding: 10px 26px;
   min-width: 380px;
 }
@@ -296,20 +485,6 @@ canvas#game {
 /* ---- Shop ---- */
 .shop-shards { font-size: 24px; font-weight: 800; color: #ffd166; }
 #shop-cards { display: grid; grid-template-columns: repeat(3, 220px); gap: 12px; justify-content: center; }
-.shop-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 14px 10px;
-  background: rgba(20, 28, 66, .85);
-  border: 2px solid rgba(120, 190, 255, .35);
-  border-radius: 12px;
-  cursor: pointer;
-  color: #eaf6ff;
-  font-family: inherit;
-}
-.shop-card:hover { border-color: #39c6ff; }
 .shop-card.maxed { border-color: #7ef0c1; opacity: .7; cursor: default; }
 .shop-card.poor { opacity: .55; }
 .shop-icon { font-size: 26px; color: #ffd166; }
@@ -318,16 +493,20 @@ canvas#game {
 .shop-pips { font-size: 14px; color: #39c6ff; letter-spacing: .2em; }
 .shop-cost { font-size: 15px; font-weight: 800; color: #ffd166; }
 
+/* ---- Pause stats ---- */
+.pause-stats {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 8px 34px;
+  padding: 12px 26px;
+}
+#pause-mission { font-size: 15px; color: #ffe66d; }
+
 /* ---- Run stats (game over) ---- */
 .run-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px 22px;
-  background: rgba(10, 16, 44, .6);
-  border: 1px solid rgba(120, 190, 255, .35);
-  border-radius: 14px;
   padding: 14px 24px;
 }
-.run-stats div { display: flex; flex-direction: column; gap: 2px; }
-.run-stats span { font-size: 11px; letter-spacing: .2em; color: #8fd8ff; }
 .run-stats b { font-size: 24px; color: #fff; }
